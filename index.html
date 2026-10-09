@@ -61,6 +61,10 @@ tailwind.config={darkMode:"class",theme:{extend:{
   .term-pending [data-term-row]{display:none}
   .term-caret::after{content:"";display:inline-block;width:.45rem;height:.85em;margin-left:.15rem;background:#b000f0;vertical-align:-.12em}
   #sticky-cta.is-visible{transform:translateY(0)}
+  .cupo-mark{height:.55rem;border-radius:9999px;background:#4c3e58;transform-origin:left center}
+  .cupo-mark.is-on{background:#b000f0;animation:cupo-in .4s ease both}
+  .is-hidden{display:none!important}
+  @keyframes cupo-in{from{transform:scaleX(.15);opacity:.35}to{transform:scaleX(1);opacity:1}}
   a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #d066f6;outline-offset:3px}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
@@ -222,7 +226,29 @@ tailwind.config={darkMode:"class",theme:{extend:{
         <p class="text-on-surface-variant mt-space-xs">Sin registros ni pasarelas. Pagas, me escribes y agendamos tu clase.</p>
       </div>
 
-      <ol class="relative flex flex-col gap-space-md">
+      <div id="cupos-panel" class="mb-space-lg rounded-xl bg-surface-container p-space-md md:p-space-lg flex flex-col gap-space-md">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-space-md">
+          <p class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface">Quedan <span id="cupos-left" class="text-primary">10</span> de 10</p>
+          <p id="cupos-countdown-wrap" class="flex flex-col sm:items-end">
+            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Para entrar a esta clase</span>
+            <span id="cupos-countdown" class="font-label-lg text-[22px] leading-none text-primary tracking-wider">07:00:00</span>
+          </p>
+        </div>
+        <div id="cupos-marks" class="grid grid-cols-10 gap-1" role="img" aria-label="Cupos de la clase"></div>
+      </div>
+
+      <div id="clase-llena" class="is-hidden rounded-xl bg-surface-container p-space-lg md:p-space-xl text-center flex flex-col items-center gap-space-md">
+        <span class="material-symbols-outlined text-primary text-[32px]">campaign</span>
+        <h3 class="font-headline-sm text-headline-sm text-on-surface">Espera la próxima clase en los estados</h3>
+        <p class="text-on-surface-variant max-w-[460px]">Los 10 cupos de esta clase ya están tomados. Ahí avisamos cuando abra la siguiente.</p>
+        <div class="w-full flex flex-col sm:flex-row gap-space-sm sm:justify-center">
+          <a class="inline-flex items-center justify-center gap-space-xs h-12 px-space-md rounded-xl bg-surface-container-high text-on-surface hover:text-primary font-label-md text-label-md uppercase" href="https://www.youtube.com/@Juanicerouno?sub_confirmation=1" rel="noopener noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px]">play_circle</span>YouTube</a>
+          <a class="inline-flex items-center justify-center gap-space-xs h-12 px-space-md rounded-xl bg-surface-container-high text-on-surface hover:text-primary font-label-md text-label-md uppercase" href="https://www.instagram.com/juanicerouno/reels/" rel="noopener noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px]">photo_camera</span>Instagram</a>
+          <a class="inline-flex items-center justify-center gap-space-xs h-12 px-space-md rounded-xl bg-surface-container-high text-on-surface hover:text-primary font-label-md text-label-md uppercase" href="https://www.tiktok.com/@juani_silveira" rel="noopener noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px]">smart_display</span>TikTok</a>
+        </div>
+      </div>
+
+      <ol id="pasos-pago" class="relative flex flex-col gap-space-md">
         <span aria-hidden="true" class="absolute left-[27px] md:left-[35px] top-10 bottom-10 w-px bg-outline-variant"></span>
 
         <!-- Paso 1: wallet -->
@@ -290,7 +316,7 @@ tailwind.config={darkMode:"class",theme:{extend:{
         </li>
       </ol>
 
-      <p class="mt-space-lg text-center font-body-sm text-body-sm text-on-surface-variant">
+      <p id="pago-otro" class="mt-space-lg text-center font-body-sm text-body-sm text-on-surface-variant">
         ¿No tienes cripto?
         <a class="inline-flex items-center gap-space-xs font-semibold text-primary hover:underline underline-offset-4" data-wa="sin-cripto" data-wa-msg="Hola Team 01, quiero la clase de Pentesting de US$10 pero no tengo cripto. ¿Qué otro medio de pago puedo usar?" href="#pago">
           <svg aria-hidden="true" class="w-4 h-4"><use href="#i-wa"/></svg>Consulta otro medio de pago
@@ -351,7 +377,7 @@ tailwind.config={darkMode:"class",theme:{extend:{
 <div id="sticky-cta" class="md:hidden fixed inset-x-0 bottom-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md px-margin-mobile pt-space-sm pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.6)]">
   <div class="flex items-center gap-space-sm">
     <a class="flex-1 inline-flex items-center justify-center gap-space-xs h-12 rounded-xl bg-primary-container text-on-primary-fixed font-label-md text-label-md uppercase tracking-wider" href="#pago">
-      <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>Acceder · US$10
+      <span class="material-symbols-outlined text-[18px]" data-sticky-icon>account_balance_wallet</span><span data-sticky-label>Acceder · US$10</span>
     </a>
     <a aria-label="Escribir por WhatsApp" class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-surface-container-high text-primary" data-wa="sticky" href="#pago">
       <svg aria-hidden="true" class="w-6 h-6"><use href="#i-wa"/></svg>
@@ -360,6 +386,8 @@ tailwind.config={darkMode:"class",theme:{extend:{
 </div>
 
 <script>
+  const CUPOS_OCUPADOS = 0; // 0 a 10. 10 = clase llena
+
   const WHATSAPP_CONFIG = {
     phone: "5491162488944",
     message: "Hola Team 01, quiero acceder a la clase de Pentesting de US$10."
@@ -468,6 +496,63 @@ tailwind.config={darkMode:"class",theme:{extend:{
 
   document.querySelectorAll("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
 
+  const cuposOcupados = Math.min(10, Math.max(0, Number(CUPOS_OCUPADOS) || 0));
+  const cuposDisponibles = 10 - cuposOcupados;
+  const claseLlena = cuposOcupados >= 10;
+  const cuposLeft = document.getElementById("cupos-left");
+  const cuposMarks = document.getElementById("cupos-marks");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (cuposLeft) cuposLeft.textContent = String(cuposDisponibles);
+  if (cuposMarks) {
+    cuposMarks.setAttribute("aria-label", `Quedan ${cuposDisponibles} de 10 cupos`);
+    for (let i = 0; i < 10; i += 1) {
+      const mark = document.createElement("span");
+      mark.className = "cupo-mark";
+      cuposMarks.appendChild(mark);
+      if (i < cuposOcupados) {
+        const turnOn = () => mark.classList.add("is-on");
+        if (reduceMotion) turnOn();
+        else setTimeout(turnOn, 120 + i * 90);
+      }
+    }
+  }
+
+  const countdownWrap = document.getElementById("cupos-countdown-wrap");
+  if (claseLlena) {
+    countdownWrap?.classList.add("is-hidden");
+    document.getElementById("pasos-pago")?.classList.add("is-hidden");
+    document.getElementById("pago-otro")?.classList.add("is-hidden");
+    document.getElementById("clase-llena")?.classList.remove("is-hidden");
+    const stickyLabel = document.querySelector("[data-sticky-label]");
+    const stickyIcon = document.querySelector("[data-sticky-icon]");
+    if (stickyLabel) stickyLabel.textContent = "Próxima clase";
+    if (stickyIcon) stickyIcon.textContent = "campaign";
+  } else if (countdownWrap) {
+    const COUNTDOWN_KEY = "clase-countdown-end";
+    const sevenHours = 7 * 60 * 60 * 1000;
+    let endsAt = Number(localStorage.getItem(COUNTDOWN_KEY));
+    if (!endsAt) {
+      endsAt = Date.now() + sevenHours;
+      localStorage.setItem(COUNTDOWN_KEY, String(endsAt));
+    }
+    const clock = document.getElementById("cupos-countdown");
+    const paintClock = () => {
+      const left = Math.max(0, endsAt - Date.now());
+      const total = Math.floor(left / 1000);
+      const hh = String(Math.floor(total / 3600)).padStart(2, "0");
+      const mm = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+      const ss = String(total % 60).padStart(2, "0");
+      if (clock) clock.textContent = `${hh}:${mm}:${ss}`;
+      return left;
+    };
+    if (paintClock() > 0) {
+      const timer = setInterval(() => {
+        if (paintClock() <= 0) clearInterval(timer);
+      }, 1000);
+    }
+  }
+
   const terminalLog = document.getElementById("terminal-log");
   if (terminalLog && terminalLog.classList.contains("term-pending")) {
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -510,8 +595,3 @@ tailwind.config={darkMode:"class",theme:{extend:{
 </script>
 </body>
 </html>
-
-
-
-
-
