@@ -58,6 +58,8 @@ tailwind.config={darkMode:"class",theme:{extend:{
   .cta-glow{animation:glow 2.4s ease-out infinite}
   @keyframes glow{0%{box-shadow:0 0 0 0 rgba(176,0,240,.45)}70%{box-shadow:0 0 0 14px rgba(176,0,240,0)}100%{box-shadow:0 0 0 0 rgba(176,0,240,0)}}
   #sticky-cta{transform:translateY(110%);transition:transform .3s ease}
+  .term-pending [data-term-row]{visibility:hidden}
+  .term-caret::after{content:"";display:inline-block;width:.45rem;height:.85em;margin-left:.15rem;background:#b000f0;vertical-align:-.12em}
   #sticky-cta.is-visible{transform:translateY(0)}
   a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #d066f6;outline-offset:3px}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
@@ -139,17 +141,22 @@ tailwind.config={darkMode:"class",theme:{extend:{
             <span class="font-label-sm text-label-sm text-on-surface-variant truncate px-space-sm">juan@pentest-box:~/clase</span>
             <span class="font-label-sm text-label-sm text-primary">bash</span>
           </div>
-          <div class="p-space-md md:p-space-lg flex flex-col gap-space-sm font-label-sm text-label-sm">
-            <p class="text-on-surface-variant"><span class="text-primary">root@juan01:~#</span> cat clase.txt</p>
-            <dl class="grid grid-cols-[80px_1fr] gap-x-space-md gap-y-space-sm p-space-md rounded-lg bg-surface-container-lowest">
-              <dt class="text-primary">NIVEL</dt><dd class="text-on-surface">Desde cero</dd>
-              <dt class="text-primary">DÓNDE</dt><dd class="text-on-surface">Discord</dd>
-              <dt class="text-primary">HORARIO</dt><dd class="text-on-surface">Lo acuerdas con Juan</dd>
-              <dt class="text-primary">PRECIO</dt><dd class="text-primary font-semibold">US$10 · pago único</dd>
-              <dt class="text-primary">PAGO</dt><dd class="text-on-surface">USDT / BTC · red BEP20</dd>
+          <div id="terminal-log" class="p-space-md md:p-space-lg flex flex-col gap-space-sm font-label-sm text-label-sm" aria-label="Clase desde cero, en Discord. El horario se acuerda con Juan. US$10, pago único, USDT o BTC por la red BEP20.">
+            <p class="text-on-surface-variant"><span class="text-primary">root@juan01:~#</span> <span data-term-cmd>cat clase.txt</span></p>
+            <dl class="flex flex-col gap-y-space-sm p-space-md rounded-lg bg-surface-container-lowest">
+              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">NIVEL</dt><dd class="text-on-surface">Desde cero</dd></div>
+              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">DÓNDE</dt><dd class="text-on-surface">Discord</dd></div>
+              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">HORARIO</dt><dd class="text-on-surface">Lo acuerdas con Juan</dd></div>
+              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">PRECIO</dt><dd class="text-primary font-semibold">US$10 · pago único</dd></div>
+              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">PAGO</dt><dd class="text-on-surface">USDT / BTC · red BEP20</dd></div>
             </dl>
-            <p class="text-on-surface-variant pt-space-xs"><span class="text-secondary-fixed">juan@box:~$</span> ./acceder --pasos=3<span class="inline-block w-2 h-3.5 ml-1 bg-primary-container animate-pulse align-middle"></span></p>
+            <p class="text-on-surface-variant pt-space-xs"><span class="text-secondary-fixed">juan@box:~$</span> <span data-term-final>./acceder --pasos=3</span></p>
           </div>
+          <script>
+            if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+              document.getElementById("terminal-log").classList.add("term-pending");
+            }
+          </script>
         </div>
       </div>
 
@@ -460,6 +467,45 @@ tailwind.config={darkMode:"class",theme:{extend:{
   ["inicio", "pago", "cta-final"].forEach((id) => observer.observe(document.getElementById(id)));
 
   document.querySelectorAll("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
+
+  const terminalLog = document.getElementById("terminal-log");
+  if (terminalLog && terminalLog.classList.contains("term-pending")) {
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const typeInto = (el, text) => new Promise((resolve) => {
+      let i = 0;
+      el.classList.add("term-caret");
+      const step = () => {
+        el.textContent = text.slice(0, i);
+        if (i < text.length) {
+          i += 1;
+          setTimeout(step, 36);
+        } else {
+          el.classList.remove("term-caret");
+          resolve();
+        }
+      };
+      step();
+    });
+
+    const cmd = terminalLog.querySelector("[data-term-cmd]");
+    const finalCmd = terminalLog.querySelector("[data-term-final]");
+    const cmdText = cmd.textContent;
+    const finalText = finalCmd.textContent;
+    cmd.textContent = "";
+    finalCmd.textContent = "";
+
+    (async () => {
+      await typeInto(cmd, cmdText);
+      await wait(220);
+      for (const row of terminalLog.querySelectorAll("[data-term-row]")) {
+        row.style.visibility = "visible";
+        await wait(170);
+      }
+      await wait(260);
+      await typeInto(finalCmd, finalText);
+      finalCmd.classList.add("term-caret");
+    })();
+  }
 </script>
 </body>
 </html>
