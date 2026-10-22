@@ -285,6 +285,75 @@ const DATA = [
     ]
   },
   {
+    id:"recon", title:"🧰 Enumeración / Fuzzing",
+    sections:[
+      {h:"Escaneo de puertos (nmap)", blocks:[
+        {p:"Escaneo rápido de todos los puertos", code:`nmap -p- --min-rate=1000 -T4 <IP>`},
+        {p:"Escaneo detallado de los puertos encontrados", code:`nmap -p<puertos_encontrados> -sC -sV -T4 <IP> -oN nmap_detallado.txt`},
+        {p:"Top 1000 puertos (default, rápido para primer vistazo)", code:`nmap <IP>`},
+        {p:"UDP (más lento, probar puertos comunes primero)", code:`nmap -sU --top-ports 20 <IP>\nnmap -sU -p- --min-rate=1000 <IP>   # completo, tarda mucho más`},
+        {p:"Detección de SO y versión de servicios", code:`nmap -O -sV <IP>`},
+        {p:"Scripts por defecto + detección de versión (combo típico)", code:`nmap -sC -sV -p- <IP>`},
+        {p:"Escaneo agresivo (OS, versiones, scripts y traceroute juntos)", code:`nmap -A <IP>`},
+        {p:"TCP Connect scan (sin privilegios root/sudo)", code:`nmap -sT <IP>`},
+        {p:"SYN scan (stealth, requiere sudo — el más usado)", code:`sudo nmap -sS <IP>`},
+        {p:"Scripts NSE de vulnerabilidades conocidas", code:`nmap --script vuln <IP>\nnmap --script vuln -p 445 <IP>   # ej. apuntado a SMB`},
+        {p:"Scripts por categoría (safe, default, auth, discovery, etc.)", code:`nmap --script=default,safe <IP>\nnmap --script=smb-enum-shares,smb-os-discovery -p445 <IP>`},
+        {p:"Ping scan (solo descubrir hosts vivos, sin escanear puertos)", code:`nmap -sn <IP>/24`},
+        {p:"Sin ping (si el host bloquea ICMP y nmap lo descarta como caído)", code:`nmap -Pn <IP>`},
+        {p:"Evasión básica (firewalls/IDS poco estrictos)", code:`nmap -f <IP>              # fragmentar paquetes\nnmap -D RND:5 <IP>        # decoys aleatorios\nnmap --source-port 53 <IP> # spoofear puerto origen`},
+        {p:"Timing templates (velocidad vs sigilo)", code:`nmap -T0 <IP>   # paranoico, muy lento\nnmap -T2 <IP>   # sigiloso\nnmap -T4 <IP>   # agresivo, el más usado en labs\nnmap -T5 <IP>   # insano, ruidoso`},
+        {p:"Guardar en todos los formatos (grep + XML + normal)", code:`nmap -p- -sC -sV <IP> -oA nmap_full`},
+        {p:"Escanear desde una lista de IPs/red", code:`nmap -iL targets.txt\nnmap 192.168.1.0/24`}
+      ]},
+      {h:"Fuzzing de directorios y archivos", blocks:[
+        {p:"gobuster — directorios", code:`gobuster dir -u http://<IP> -w /usr/share/wordlists/dirb/common.txt -x php,txt,html -t 50`},
+        {p:"gobuster — subdominios (vhost)", code:`gobuster vhost -u http://<dominio> -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain`},
+        {p:"feroxbuster — recursivo, más rápido en wordlists grandes", code:`feroxbuster -u http://<IP> -w /usr/share/wordlists/dirb/common.txt -x php,txt,html,bak -t 50 -d 3`},
+        {p:"ffuf — fuzzing genérico (dirs, params, subdominios)", code:`ffuf -u http://<IP>/FUZZ -w /usr/share/wordlists/dirb/common.txt -mc all -fc 404\nffuf -u http://<dominio>/ -H "Host: FUZZ.<dominio>" -w subdomains.txt -fs <tamaño_respuesta_default>\nffuf -u http://<IP>/page.php?FUZZ=test -w params.txt -mc 200`},
+        {p:"dirb (más lento, pero viene por default en muchas distros)", code:`dirb http://<IP> /usr/share/wordlists/dirb/common.txt`}
+      ]},
+      {h:"Wordlists — buscar e instalar", blocks:[
+        {p:"Buscar wordlists ya instaladas en el sistema", code:`locate wordlist\nlocate rockyou\nfind / -iname "*wordlist*" 2>/dev/null\nfind / -iname "rockyou*" 2>/dev/null`},
+        {p:"rockyou.txt — instalar (Kali/Parrot ya la trae comprimida)", code:`sudo apt install wordlists -y\nls /usr/share/wordlists/\nsudo gunzip /usr/share/wordlists/rockyou.txt.gz`},
+        {p:"rockyou.txt — si no está, descargarla directo", code:`sudo mkdir -p /usr/share/wordlists\nsudo curl -L -o /usr/share/wordlists/rockyou.txt.gz https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt\n# o clonar un mirror en GitHub y descomprimir con gunzip/7z según el formato`},
+        {p:"SecLists — la colección más completa (dirs, params, usuarios, passwords)", code:`sudo apt install seclists -y\nls /usr/share/seclists/\n\n# si no está en apt:\ngit clone https://github.com/danielmiessler/SecLists.git /usr/share/seclists`},
+        {p:"dirb / dirbuster — wordlists que ya vienen con la herramienta", code:`ls /usr/share/wordlists/dirb/\ncat /usr/share/wordlists/dirb/common.txt | wc -l`},
+        {p:"Generar una wordlist propia a partir de una página (cewl)", code:`cewl http://<IP> -d 2 -m 5 -w wordlist_custom.txt`},
+        {p:"Generar variaciones/mutaciones de una wordlist (crunch)", code:`crunch 6 8 -t @@@@%%%% -o wordlist_custom.txt   # patrón: letras+números\ncrunch 8 8 0123456789 -o pins.txt                # ej. PINs numéricos`},
+        {p:"Mutar una wordlist existente con reglas (útil junto a hashcat)", code:`hashcat --stdout rockyou.txt -r /usr/share/hashcat/rules/best64.rule > rockyou_mutada.txt`}
+      ]},
+      {h:"Reconocimiento web", blocks:[
+        {p:"whatweb — identificar tecnologías", code:`whatweb http://<IP>`},
+        {p:"nikto — escaneo de vulnerabilidades web conocidas", code:`nikto -h http://<IP>`},
+        {p:"Enumerar subdominios por DNS (si hay dominio)", code:`dnsenum <dominio>\nfierce --domain <dominio>`}
+      ]}
+    ]
+  },
+  {
+    id:"hashes", title:"🔓 Cracking de Hashes",
+    sections:[
+      {h:"Identificar el tipo de hash", blocks:[
+        {p:"hash-identifier / hashid", code:`hash-identifier\nhashid '<hash>'\nhashid -m '<hash>'   # -m muestra directo el modo de hashcat`}
+      ]},
+      {h:"hashcat — modos más comunes", blocks:[
+        {p:"MD5 / SHA1 / NTLM", code:`hashcat -m 0 hash.txt rockyou.txt      # MD5\nhashcat -m 100 hash.txt rockyou.txt    # SHA1\nhashcat -m 1000 hash.txt rockyou.txt   # NTLM`},
+        {p:"SHA256 / SHA512", code:`hashcat -m 1400 hash.txt rockyou.txt   # SHA256\nhashcat -m 1700 hash.txt rockyou.txt   # SHA512`},
+        {p:"bcrypt / /etc/shadow (sha512crypt)", code:`hashcat -m 3200 hash.txt rockyou.txt   # bcrypt\nhashcat -m 1800 hash.txt rockyou.txt   # sha512crypt (linux shadow)`},
+        {p:"ZIP / RAR / PDF protegidos", code:`hashcat -m 13600 hash.txt rockyou.txt  # zip\nhashcat -m 13000 hash.txt rockyou.txt  # rar5\nhashcat -m 10500 hash.txt rockyou.txt  # pdf`},
+        {p:"Con reglas (mutaciones típicas de passwords)", code:`hashcat -m 0 hash.txt rockyou.txt -r /usr/share/hashcat/rules/best64.rule`},
+        {p:"Modo fuerza bruta (sin wordlist)", code:`hashcat -m 0 hash.txt -a 3 ?a?a?a?a?a?a`}
+      ]},
+      {h:"john the ripper", blocks:[
+        {p:"Crackeo básico con wordlist", code:`john --wordlist=rockyou.txt hash.txt\njohn --show hash.txt`},
+        {p:"Convertir formatos para john (zip, ssh, etc.)", code:`zip2john archivo.zip > hash.txt\nssh2john id_rsa > hash.txt\nunshadow /etc/passwd /etc/shadow > combined.txt\njohn combined.txt`}
+      ]},
+      {h:"Tips rápidos", blocks:[
+        {p:"Diferenciar largo/formato del hash a ojo", code:`# 32 chars hex   -> MD5\n# 40 chars hex   -> SHA1\n# 64 chars hex   -> SHA256\n# $1$...          -> MD5 crypt (linux)\n# $2a$/$2b$...    -> bcrypt\n# $6$...          -> sha512crypt (linux shadow)\n# aad3b435...:... -> NTLM (formato LM:NTLM)`}
+      ]}
+    ]
+  },
+  {
     id:"flags", title:"🚩 Buscar Flags (HTB / THM)", 
     sections:[
       {h:"Ubicaciones típicas", blocks:[
@@ -334,7 +403,11 @@ filters.addEventListener('click', e=>{
 
 function render(){
   const term = q.value.trim();
-  const sheets = DATA.filter(s => activeSheet==='all' || s.id===activeSheet);
+  // mientras hay texto en el buscador, ignoramos la pestaña de categoría
+  // (si no, buscar "find" estando parado en "Windows" no mostraba nada)
+  const sheets = term
+    ? DATA
+    : DATA.filter(s => activeSheet==='all' || s.id===activeSheet);
   let html = '';
   let any = false;
 
@@ -342,7 +415,9 @@ function render(){
     const secs = sheet.sections.map(sec=>{
       const blocks = sec.blocks.filter(b=>{
         if(!term) return true;
-        return (sec.h+' '+b.p+' '+b.code).toLowerCase().includes(term.toLowerCase());
+        const haystack = (sec.h+' '+b.p+' '+b.code).toLowerCase();
+        const words = term.toLowerCase().split(/\s+/).filter(Boolean);
+        return words.every(w => haystack.includes(w));
       });
       if(!blocks.length) return '';
       return {sec, blocks};
@@ -375,7 +450,13 @@ function copyCode(btn){
   });
 }
 
-q.addEventListener('input', render);
+q.addEventListener('input', ()=>{
+  // feedback visual: mientras se busca, marcamos "todos" como activo
+  // (la categoría real vuelve a aplicarse solo si se borra la búsqueda)
+  const term = q.value.trim();
+  [...filters.children].forEach(b=>b.classList.toggle('active', term ? b.dataset.id==='all' : b.dataset.id===activeSheet));
+  render();
+});
 render();
 </script>
 </body>
