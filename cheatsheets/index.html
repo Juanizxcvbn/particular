@@ -285,6 +285,22 @@ const DATA = [
     ]
   },
   {
+    id:"cloud", title:"☁️ Cloud / AWS Enumeration",
+    sections:[
+      {h:"S3 Buckets", blocks:[
+        {p:"Listar contenido de un bucket público sin credenciales", code:`aws s3 ls s3://<nombre-bucket>/ --no-sign-request --recursive`},
+        {p:"Descargar todo el contenido de un bucket público", code:`aws s3 sync s3://<nombre-bucket> . --no-sign-request`},
+        {p:"Subir un archivo a un bucket (si tiene permiso de escritura)", code:`aws s3 cp <archivo-local> s3://<nombre-bucket>/ --no-sign-request`},
+        {p:"Chequear bucket vía HTTP directo", code:`curl https://<nombre-bucket>.s3.amazonaws.com/`},
+        {p:"S3Scanner — buscar buckets mal configurados por nombre", code:`python3 s3scanner.py scan --bucket <nombre-bucket>`}
+      ]},
+      {h:"EC2 Metadata / SSRF", blocks:[
+        {p:"Endpoint de metadata (típico objetivo de SSRF)", code:`curl http://169.254.169.254/latest/meta-data/\ncurl http://169.254.169.254/latest/meta-data/iam/security-credentials/`},
+        {p:"Sacar credenciales temporales de un rol IAM vía metadata", code:`curl http://169.254.169.254/latest/meta-data/iam/security-credentials/<nombre-rol>`}
+      ]}
+    ]
+  },
+  {
     id:"recon", title:"🧰 Enumeración / Fuzzing",
     sections:[
       {h:"Escaneo de puertos (nmap)", blocks:[
@@ -305,6 +321,16 @@ const DATA = [
         {p:"Timing templates (velocidad vs sigilo)", code:`nmap -T0 <IP>   # paranoico, muy lento\nnmap -T2 <IP>   # sigiloso\nnmap -T4 <IP>   # agresivo, el más usado en labs\nnmap -T5 <IP>   # insano, ruidoso`},
         {p:"Guardar en todos los formatos (grep + XML + normal)", code:`nmap -p- -sC -sV <IP> -oA nmap_full`},
         {p:"Escanear desde una lista de IPs/red", code:`nmap -iL targets.txt\nnmap 192.168.1.0/24`}
+      ]},
+      {h:"SMB Enumeration", blocks:[
+        {p:"Nmap — enumeración de shares, usuarios y SO", code:`nmap --script smb-enum-shares,smb-enum-users,smb-os-discovery -p445 <IP>`},
+        {p:"Nmap — scripts de vulnerabilidades SMB (ms08-067, ms17-010, etc.)", code:`nmap --script smb-vuln* -p445 <IP>`},
+        {p:"smbclient — listar shares (null session)", code:`smbclient -L //<IP>/ -N`},
+        {p:"smbclient — forzar SMBv1 (máquinas viejas tipo XP/2003)", code:`smbclient -L //<IP>/ -N --option='client min protocol=NT1'`},
+        {p:"smbclient — conectarse a un share específico", code:`smbclient //<IP>/<share> -N`},
+        {p:"NetExec (nxc) — chequeo rápido + null auth", code:`nxc smb <IP> -u '' -p ''\nnxc smb <IP> -u '' -p '' --shares`},
+        {p:"enum4linux-ng — enumeración todo-en-uno", code:`enum4linux-ng -A <IP>`},
+        {p:"rpcclient — enumeración vía RPC con null session", code:`rpcclient -U "" <IP>`}
       ]},
       {h:"Fuzzing de directorios y archivos", blocks:[
         {p:"gobuster — directorios", code:`gobuster dir -u http://<IP> -w /usr/share/wordlists/dirb/common.txt -x php,txt,html -t 50`},
