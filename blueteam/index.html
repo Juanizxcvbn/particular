@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blue Team Cheatsheets | juanicerouno</title>
+<style>
+:root{--bg:#070a12;--panel:#0d1220;--line:#1b2540;--cy:#00e5ff;--mg:#ff2bd6;--tx:#cfe3ff;--dim:#7c8db5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 ui-monospace,"Cascadia Code",Consolas,Menlo,monospace}
+header{padding:28px 16px 12px;max-width:980px;margin:auto}
+h1{margin:0;font-size:26px;color:var(--cy);text-shadow:0 0 12px #00e5ff66}
+h1 span{color:var(--mg)}
+p.sub{margin:6px 0 0;color:var(--dim)}
+main{max-width:980px;margin:auto;padding:0 16px 60px}
+#q{width:100%;padding:12px 14px;margin:14px 0 10px;background:var(--panel);color:var(--tx);border:1px solid var(--cy);border-radius:6px;font:inherit}
+#q:focus{outline:2px solid var(--mg)}
+nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+nav button{background:var(--panel);color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:5px 10px;font:inherit;cursor:pointer}
+nav button.on{color:#000;background:var(--cy);border-color:var(--cy)}
+nav button:focus-visible,.cp:focus-visible{outline:2px solid var(--mg)}
+#n{color:var(--dim);margin:8px 0}
+h2{color:var(--mg);font-size:16px;margin:26px 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.it{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--cy);border-radius:4px;margin:8px 0;padding:8px 10px}
+.d{color:var(--dim);font-size:12px;margin-bottom:4px}
+.r{display:flex;gap:8px;align-items:flex-start}
+pre{flex:1;margin:0;white-space:pre-wrap;word-break:break-all;color:var(--tx)}
+.cp{background:none;color:var(--cy);border:1px solid var(--cy);border-radius:4px;padding:2px 8px;font:inherit;cursor:pointer}
+.cp.ok{color:#000;background:var(--cy)}
+pre a{color:var(--cy);text-decoration:underline}
+pre a:hover,pre a:focus-visible{color:var(--mg)}
+</style>
+</head>
+<body>
+<header>
+<h1>BLUE<span>TEAM</span> // cheatsheets</h1>
+<p class="sub">Queries de SIEM, filtros de red, eventos y DFIR. Para detectar, no para atacar.</p>
+</header>
+<main>
+<input id="q" type="search" placeholder="Buscar: 4625, powershell, dns, lsass, kerberos..." autocomplete="off">
+<nav id="nav"></nav>
+<div id="n"></div>
+<div id="out"></div>
+</main>
+<script>
+const D=String.raw`
+## Splunk (SPL)
+Logons fallidos (4625) por usuario e IP|||index=wineventlog EventCode=4625 | stats count by Account_Name, src_ip | sort -count
+Fuerza bruta con éxito posterior|||index=wineventlog (EventCode=4625 OR EventCode=4624) | stats count(eval(EventCode=4625)) as fail count(eval(EventCode=4624)) as ok by Account_Name, src_ip | where fail>10 AND ok>0
+PowerShell encodido (Sysmon 1)|||index=sysmon EventCode=1 (CommandLine="*-enc*" OR CommandLine="*-EncodedCommand*") | table _time host User ParentImage Image CommandLine
+Office lanzando cmd o PowerShell|||index=sysmon EventCode=1 (ParentImage="*winword.exe" OR ParentImage="*excel.exe") (Image="*cmd.exe" OR Image="*powershell.exe") | table _time host ParentImage Image CommandLine
+Beaconing (conexiones periódicas)|||index=sysmon EventCode=3 | bin _time span=1m | stats count by _time, dest_ip | stats stdev(count) avg(count) dc(_time) by dest_ip | where dc(_time)>30 | sort stdev(count)
+Usuario creado o agregado a grupo admin|||index=wineventlog (EventCode=4720 OR EventCode=4732) | table _time EventCode Account_Name Group_Name
+Mayor tráfico saliente|||index=firewall action=allowed | stats sum(bytes_out) as out by src_ip, dest_ip | sort -out | head 20
+Logs borrados (1102 / 104)|||index=wineventlog (EventCode=1102 OR EventCode=104) | table _time host Account_Name
+Procesos raros (poco frecuentes)|||index=sysmon EventCode=1 | rare limit=20 Image
+Acceso a LSASS (Sysmon 10)|||index=sysmon EventCode=10 TargetImage="*lsass.exe" | stats count by SourceImage, GrantedAccess
+
+## Elastic (KQL / ES|QL)
+KQL: logons fallidos|||event.code: 4625 and winlog.channel: "Security"
+KQL: PowerShell sospechoso|||process.name: "powershell.exe" and process.command_line: (*-enc* or *-nop* or *bypass* or *downloadstring*)
+KQL: Office lanza shell|||process.parent.name: ("winword.exe" or "excel.exe" or "outlook.exe") and process.name: ("cmd.exe" or "powershell.exe" or "wscript.exe")
+KQL: conexiones a una IP|||event.category: network and destination.ip: "1.2.3.4"
+KQL: acceso a LSASS|||event.code: 10 and winlog.event_data.TargetImage: *lsass.exe
+KQL: servicio instalado (7045)|||event.code: 7045
+KQL: buscar un hash|||file.hash.sha256: "HASH" or process.hash.sha256: "HASH"
+ES|QL: fuerza bruta|||FROM logs-* | WHERE event.code == "4625" | STATS fails = COUNT(*) BY user.name, source.ip | WHERE fails > 10 | SORT fails DESC
+ES|QL: procesos menos frecuentes|||FROM logs-* | WHERE event.category == "process" | STATS c = COUNT(*) BY process.name | SORT c ASC | LIMIT 20
+Lucene: herramientas de credenciales|||process.command_line:*mimikatz* OR process.command_line:*sekurlsa*
+
+## Sentinel (KQL)
+Logons fallidos|||SecurityEvent | where EventID == 4625 | summarize Fails=count() by Account, IpAddress | where Fails > 10 | order by Fails desc
+Fallidos y luego exitoso|||let fails = SecurityEvent | where EventID==4625 | summarize F=count() by IpAddress, Account | where F>10; SecurityEvent | where EventID==4624 | join kind=inner fails on IpAddress, Account | project TimeGenerated, Account, IpAddress, F
+Sign-ins fallidos en Entra ID|||SigninLogs | where ResultType != 0 | summarize count() by UserPrincipalName, IPAddress, ResultDescription | order by count_ desc
+Viaje imposible (varios países)|||SigninLogs | where ResultType==0 | extend Country=tostring(LocationDetails.countryOrRegion) | summarize Countries=make_set(Country), n=dcount(Country) by UserPrincipalName, bin(TimeGenerated,1h) | where n>1
+PowerShell encodido (4688)|||SecurityEvent | where EventID==4688 | where CommandLine has_any ("-enc","-EncodedCommand","downloadstring") | project TimeGenerated, Computer, Account, CommandLine
+Reglas de inbox sospechosas (O365)|||OfficeActivity | where Operation in ("New-InboxRule","Set-InboxRule") | project TimeGenerated, UserId, Parameters
+Buscar IOC en firewall|||CommonSecurityLog | where DestinationIP in ("1.2.3.4","5.6.7.8") | project TimeGenerated, SourceIP, DestinationIP, DeviceAction
+Grupos privilegiados modificados|||SecurityEvent | where EventID in (4728,4732,4756) | project TimeGenerated, Computer, SubjectAccount, MemberName, TargetAccount
+En qué tablas aparece un término|||search "usuario" | summarize count() by $table
+
+## QRadar (AQL)
+Logons fallidos|||SELECT sourceip, username, COUNT(*) AS fails FROM events WHERE qidname(qid) ILIKE '%fail%' AND username IS NOT NULL GROUP BY sourceip, username HAVING fails > 10 LAST 24 HOURS
+Eventos de una IP|||SELECT DATEFORMAT(starttime,'YYYY-MM-dd HH:mm:ss') AS t, sourceip, destinationip, qidname(qid) AS evento FROM events WHERE sourceip='1.2.3.4' LAST 1 HOURS
+Top destinos por bytes (flows)|||SELECT destinationip, SUM(sourcebytes) AS bytes FROM flows GROUP BY destinationip ORDER BY bytes DESC LIMIT 20 LAST 1 HOURS
+Ofensas abiertas por magnitud|||SELECT id, description, magnitude, offenseSource FROM offenses WHERE status='OPEN' ORDER BY magnitude DESC
+Buscar texto en payload|||SELECT sourceip, UTF8(payload) FROM events WHERE UTF8(payload) ILIKE '%powershell%' LAST 6 HOURS
+Eventos por log source|||SELECT LOGSOURCENAME(logsourceid) AS fuente, COUNT(*) AS c FROM events GROUP BY logsourceid ORDER BY c DESC LAST 1 HOURS
+IPs contra un reference set de IOC|||SELECT sourceip FROM events WHERE REFERENCESETCONTAINS('IOC_IPs', sourceip) LAST 24 HOURS
+
+## Wireshark (filtros)
+Por IP|||ip.addr == 10.0.0.5
+Origen y destino|||ip.src == 10.0.0.5 && ip.dst == 8.8.8.8
+Requests HTTP|||http.request
+HTTP POST (formularios, credenciales)|||http.request.method == "POST"
+Paquetes que contienen texto|||frame contains "password"
+Consultas DNS|||dns.flags.response == 0
+DNS a un dominio|||dns.qry.name contains "evil"
+SYN sin ACK (escaneo)|||tcp.flags.syn == 1 && tcp.flags.ack == 0
+Resets (puertos cerrados)|||tcp.flags.reset == 1
+Problemas y retransmisiones TCP|||tcp.analysis.flags
+Credenciales FTP|||ftp.request.command == "USER" || ftp.request.command == "PASS"
+SMB y NTLM|||ntlmssp || smb2
+TLS Client Hello|||tls.handshake.type == 1
+Ver SNI (dominio en TLS)|||tls.handshake.extensions_server_name
+ARP spoofing|||arp.duplicate-address-detected
+LLMNR / NBT-NS (Responder)|||llmnr || nbns
+Kerberos|||kerberos
+ICMP|||icmp
+Por puerto|||tcp.port == 4444
+Exportar archivos|||Archivo > Exportar objetos > HTTP / SMB / FTP
+Seguir una conversación|||Click derecho > Seguir > Flujo TCP (filtro: tcp.stream eq 0)
+Estadísticas útiles|||Statistics > Conversations / Endpoints / Protocol Hierarchy
+
+## tshark / tcpdump / Zeek
+tshark: top IPs destino|||tshark -r cap.pcap -T fields -e ip.dst | sort | uniq -c | sort -rn | head
+tshark: dominios consultados|||tshark -r cap.pcap -Y "dns.flags.response==0" -T fields -e dns.qry.name | sort -u
+tshark: URLs HTTP|||tshark -r cap.pcap -Y http.request -T fields -e http.host -e http.request.uri
+tshark: exportar objetos HTTP|||tshark -r cap.pcap --export-objects http,./salida
+tcpdump: capturar a archivo|||sudo tcpdump -i eth0 -w cap.pcap
+tcpdump: host y puerto|||sudo tcpdump -i eth0 host 10.0.0.5 and port 443 -nn
+tcpdump: leer un pcap|||tcpdump -nn -r cap.pcap
+Zeek sobre un pcap|||zeek -r cap.pcap && cat conn.log | zeek-cut id.orig_h id.resp_h id.resp_p service
+
+## Eventos de Windows
+4624 / 4625|||Logon exitoso / fallido (tipo 3 red, 10 RDP, 2 interactivo)
+4648|||Logon con credenciales explícitas (runas, movimiento lateral)
+4672|||Privilegios especiales asignados (logon de admin)
+4688|||Proceso creado (requiere auditoría de línea de comandos)
+4697 / 7045|||Servicio instalado (persistencia, psexec)
+4698|||Tarea programada creada
+4720 / 4726|||Usuario creado / eliminado
+4728 / 4732 / 4756|||Miembro agregado a grupo privilegiado
+4768 / 4769|||Tickets Kerberos TGT / TGS (4769 con RC4 puede indicar Kerberoasting)
+4776|||Validación de credenciales NTLM
+1102 / 104|||Log de seguridad / sistema borrado
+4103 / 4104|||PowerShell module / script block logging
+
+## Sysmon
+Event 1|||Creación de proceso (CommandLine, ParentImage, Hashes)
+Event 3|||Conexión de red
+Event 7|||DLL cargada
+Event 8|||CreateRemoteThread (inyección)
+Event 10|||ProcessAccess (volcado de LSASS)
+Event 11|||Archivo creado
+Event 12 / 13|||Registro creado / modificado (claves Run, persistencia)
+Event 15|||FileCreateStreamHash (Mark of the Web)
+Event 22|||Consulta DNS
+Leer Sysmon desde PowerShell|||Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational'; Id=1} -MaxEvents 50 | Format-List TimeCreated, Message
+
+## Windows (triage)
+Logons fallidos recientes|||Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} -MaxEvents 50
+Conexiones establecidas|||netstat -ano | findstr ESTABLISHED
+Proceso por PID|||Get-Process -Id 1234 | Select Name, Path, StartTime
+Tareas programadas activas|||Get-ScheduledTask | Where State -ne Disabled | Select TaskName, TaskPath
+Servicios fuera de system32|||Get-CimInstance Win32_Service | Where PathName -notlike "*system32*" | Select Name, PathName
+Claves Run (persistencia)|||reg query HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+Hash de un archivo|||Get-FileHash .\archivo.exe -Algorithm SHA256
+
+## Linux (logs y triage)
+SSH: intentos fallidos por IP|||grep "Failed password" /var/log/auth.log | awk '{print $(NF-3)}' | sort | uniq -c | sort -rn | head
+SSH: logins exitosos|||grep "Accepted" /var/log/auth.log
+Uso de sudo|||grep "sudo:" /var/log/auth.log
+Puertos y procesos|||ss -tulpn
+Árbol de procesos|||ps auxf
+Cron|||crontab -l; ls -la /etc/cron.*
+Archivos modificados en 24 h|||find / -mtime -1 -type f 2>/dev/null
+Binarios SUID|||find / -perm -4000 -type f 2>/dev/null
+Últimos logins|||last -a | head -20
+Logs de un servicio|||journalctl -u ssh --since "1 hour ago"
+
+## Phishing / IOC / DFIR
+Headers de mail: qué mirar|||From vs Return-Path, Received (de abajo hacia arriba), SPF / DKIM / DMARC, Reply-To
+Hash de archivo|||sha256sum archivo (luego buscarlo en VirusTotal o MalwareBazaar)
+Reputación de IP|||AbuseIPDB, VirusTotal, GreyNoise, Shodan
+Dominio o URL|||urlscan.io, VirusTotal, whois, ANY.RUN (sandbox)
+Decodificar PowerShell en base64|||echo "BASE64" | base64 -d | iconv -f UTF-16LE -t UTF-8
+Tipo de archivo y strings|||file archivo; strings -n 8 archivo | less
+Timeline con Plaso|||log2timeline.py plaso.dump evidencia && psort.py -o dynamic plaso.dump
+Memoria con Volatility 3|||vol -f mem.raw windows.pslist ; windows.netscan ; windows.malfind ; windows.cmdline
+Regla Sigma mínima|||title: PowerShell Encoded; logsource: {category: process_creation, product: windows}; detection: {sel: {CommandLine|contains: '-enc'}, condition: sel}
+MITRE ATT&CK|||Mapear cada hallazgo a táctica y técnica en attack.mitre.org
+
+## Webs de análisis (dominios, URLs, IPs)
+VirusTotal: reputación de URL, dominio, IP o hash|||https://www.virustotal.com/gui/home/search
+AbuseIPDB: reportes de abuso de una IP|||https://www.abuseipdb.com/
+urlscan.io: escanea una URL (captura, redirecciones, requests)|||https://urlscan.io/
+ANY.RUN: sandbox interactivo para malware y URLs|||https://app.any.run/
+Hybrid Analysis: sandbox automatizado (Falcon Sandbox)|||https://www.hybrid-analysis.com/
+CyberChef: extraer URLs de un texto|||https://gchq.github.io/CyberChef/#recipe=Extract_URLs(false,false,false)
+
+## Inteligencia de amenazas (IP, dominio, hash)
+Shodan: servicios expuestos de una IP|||https://www.shodan.io/
+Censys: hosts y certificados|||https://search.censys.io/
+GreyNoise: ¿es ruido de internet o ataque dirigido?|||https://viz.greynoise.io/
+AlienVault OTX: pulsos e IOC de la comunidad|||https://otx.alienvault.com/
+IBM X-Force Exchange|||https://exchange.xforce.ibmcloud.com/
+Cisco Talos: reputación de IP y dominio|||https://talosintelligence.com/reputation_center
+ThreatFox: IOC de malware (abuse.ch)|||https://threatfox.abuse.ch/
+Pulsedive|||https://pulsedive.com/
+IPinfo: geolocalización, ASN y proveedor|||https://ipinfo.io/
+Spamhaus: listas de bloqueo|||https://check.spamhaus.org/
+URLVoid: reputación de dominio en varios motores|||https://www.urlvoid.com/
+Netcraft: reporte de un sitio|||https://sitereport.netcraft.com/
+Sucuri SiteCheck: malware en sitios web|||https://sitecheck.sucuri.net/
+Google Safe Browsing|||https://transparencyreport.google.com/safe-browsing/search
+Have I Been Pwned: filtraciones de un mail|||https://haveibeenpwned.com/
+
+## Muestras y feeds de malware
+MalwareBazaar: buscar y bajar muestras por hash|||https://bazaar.abuse.ch/
+URLhaus: URLs que distribuyen malware|||https://urlhaus.abuse.ch/
+Feodo Tracker: C2 de botnets|||https://feodotracker.abuse.ch/
+SSLBL: certificados SSL maliciosos|||https://sslbl.abuse.ch/
+YARAify: escanear con reglas YARA|||https://yaraify.abuse.ch/
+Triage (Recorded Future): sandbox|||https://tria.ge/
+Joe Sandbox|||https://www.joesandbox.com/
+Intezer: análisis de código genético de malware|||https://analyze.intezer.com/
+Malpedia: familias de malware|||https://malpedia.caad.fkie.fraunhofer.de/
+PhishTank: sitios de phishing reportados|||https://phishtank.org/
+OpenPhish|||https://openphish.com/
+
+## Email y phishing
+MXToolbox: analizar headers de un mail|||https://mxtoolbox.com/EmailHeaders.aspx
+Google Messageheader: headers en vista de tabla|||https://toolbox.googleapps.com/apps/messageheader/
+MXToolbox: chequear SPF|||https://mxtoolbox.com/spf.aspx
+MXToolbox: chequear DMARC|||https://mxtoolbox.com/DMARC.aspx
+MXToolbox: blacklists de IP o dominio|||https://mxtoolbox.com/blacklists.aspx
+EmailRep: reputación de una dirección de mail|||https://emailrep.io/
+PhishTool: análisis de mails de phishing|||https://www.phishtool.com/
+Unshorten.it: desacortar links|||https://unshorten.it/
+
+## DNS, whois y certificados
+ICANN Lookup: whois de un dominio|||https://lookup.icann.org/
+DNSChecker: propagación y registros DNS|||https://dnschecker.org/
+ViewDNS: reverse IP, whois, historial|||https://viewdns.info/
+SecurityTrails: historial de DNS y subdominios|||https://securitytrails.com/
+crt.sh: certificados emitidos para un dominio|||https://crt.sh/
+DNSDumpster: mapa de subdominios|||https://dnsdumpster.com/
+Robtex: relaciones entre IP, dominio y ASN|||https://www.robtex.com/
+Hurricane Electric BGP: ASN y rangos de IP|||https://bgp.he.net/
+Wayback Machine: cómo era un sitio antes|||https://web.archive.org/
+
+## Decodificación y utilidades
+CyberChef: la navaja suiza (base64, XOR, gunzip, magic)|||https://gchq.github.io/CyberChef/
+dCode: cifrados y encodings|||https://www.dcode.fr/en
+Regex101: probar expresiones regulares|||https://regex101.com/
+Explainshell: explica un comando de Linux|||https://explainshell.com/
+de4js: desofuscar JavaScript|||https://lelinhtinh.github.io/de4js/
+Unfurl: desarmar URLs y timestamps|||https://dfir.blog/unfurl/
+Epoch Converter: timestamps Unix|||https://www.epochconverter.com/
+NVD: buscar un CVE|||https://nvd.nist.gov/vuln/search
+
+## Referencias y detección
+MITRE ATT&CK|||https://attack.mitre.org/
+MITRE D3FEND: contramedidas defensivas|||https://d3fend.mitre.org/
+LOLBAS: binarios de Windows abusados|||https://lolbas-project.github.io/
+GTFOBins: binarios de Linux abusados|||https://gtfobins.github.io/
+LOLDrivers: drivers vulnerables o abusados|||https://www.loldrivers.io/
+SigmaHQ: reglas de detección|||https://github.com/SigmaHQ/sigma
+Uncoder.io: traducir Sigma a Splunk, Elastic, Sentinel, QRadar|||https://uncoder.io/
+Elastic detection rules|||https://github.com/elastic/detection-rules
+Azure Sentinel: queries y detecciones oficiales|||https://github.com/Azure/Azure-Sentinel
+Atomic Red Team: simular técnicas para probar detecciones|||https://github.com/redcanaryco/atomic-red-team
+Windows Security Log Encyclopedia: todos los Event IDs|||https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/
+Sysmon: documentación oficial|||https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+Wireshark: referencia de display filters|||https://www.wireshark.org/docs/dfref/
+CISA KEV: vulnerabilidades explotadas activamente|||https://www.cisa.gov/known-exploited-vulnerabilities-catalog
+SANS DFIR: posters y cheat sheets|||https://www.sans.org/posters/?focus-area=digital-forensics
+The DFIR Report: casos reales de intrusión|||https://thedfirreport.com/
+
+## Labs y práctica blue team
+CyberDefenders|||https://cyberdefenders.org/
+LetsDefend|||https://app.letsdefend.io/
+TryHackMe: path SOC Level 1|||https://tryhackme.com/path/outline/soclevel1
+HTB Academy: path SOC Analyst|||https://academy.hackthebox.com/
+BlueTeamLabs Online|||https://blueteamlabs.online/
+Malware Traffic Analysis: pcaps reales para practicar|||https://www.malware-traffic-analysis.net/
+
+## PowerShell (análisis y hunting)
+Script Block Logging (4104)|||Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-PowerShell/Operational'; Id=4104} -MaxEvents 50 | Select TimeCreated, Message
+Buscar texto en el log de seguridad|||Get-WinEvent -LogName Security -MaxEvents 5000 | Where Message -match "mimikatz"
+Leer un .evtx offline filtrando ID|||Get-WinEvent -Path .\Security.evtx -FilterXPath "*[System[EventID=4625]]"
+Procesos con línea de comandos y padre|||Get-CimInstance Win32_Process | Select ProcessId, ParentProcessId, Name, CommandLine
+Procesos sin firma digital válida|||Get-Process | Where Path | Select -Expand Path -Unique | Get-AuthenticodeSignature | Where Status -ne "Valid"
+Conexiones establecidas con su proceso|||Get-NetTCPConnection -State Established | Select LocalPort, RemoteAddress, RemotePort, @{n='Proc';e={(Get-Process -Id $_.OwningProcess).Name}}
+Puertos en escucha|||Get-NetTCPConnection -State Listen | Sort LocalPort
+Usuarios locales y administradores|||Get-LocalUser; Get-LocalGroupMember Administrators
+Programas de inicio (persistencia)|||Get-CimInstance Win32_StartupCommand | Select Name, Command, Location
+Persistencia por WMI|||Get-CimInstance -Namespace root\subscription -ClassName __EventConsumer
+Archivos modificados en las últimas 24 h|||Get-ChildItem C:\Users -Recurse -File -ErrorAction SilentlyContinue | Where LastWriteTime -gt (Get-Date).AddDays(-1)
+Hash de todos los archivos de una carpeta|||Get-ChildItem -Recurse -File | Get-FileHash -Algorithm SHA256 | Sort Hash
+Tipos de logon más frecuentes (4624)|||Get-WinEvent -FilterHashtable @{LogName='Security';Id=4624} -MaxEvents 200 | ForEach { ([xml]$_.ToXml()).Event.EventData.Data | Where Name -eq 'LogonType' | Select -Expand '#text' } | Group | Sort Count -Desc
+Caché DNS|||Get-DnsClientCache | Select Entry, Data
+Detecciones de Defender|||Get-MpThreatDetection
+Alternate Data Streams de un archivo|||Get-Item .\archivo -Stream *
+Decodificar base64 de PowerShell|||[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String("BASE64"))
+Exportar cualquier resultado a CSV|||COMANDO | Export-Csv salida.csv -NoTypeInformation
+
+## Análisis de malware y forense
+Identificar archivo|||file muestra; sha256sum muestra; exiftool muestra
+Strings (ASCII y ofuscados)|||strings -n 8 muestra; floss muestra
+Info de un PE (headers, imports)|||Detect It Easy (DIE), PE-bear, pefile (python)
+Sandbox online|||ANY.RUN, Hybrid Analysis, Joe Sandbox, Triage
+Firma y strings con Sysinternals|||sigcheck -u -e C:\Windows\System32 ; strings64.exe muestra
+Análisis dinámico en VM aislada|||Procmon (archivos, registro, procesos), Process Explorer, TCPView, Autoruns, Regshot
+Documentos Office con macros|||olevba documento.docm ; oleid documento.doc
+PDF sospechoso|||pdfid.py archivo.pdf ; pdf-parser.py -s /JavaScript archivo.pdf
+Reglas YARA sobre una carpeta|||yara -r reglas.yar carpeta/
+Suricata sobre un pcap|||suricata -r cap.pcap -l salida/ && cat salida/fast.log
+Volatility 3: árbol y DLLs|||vol -f mem.raw windows.pstree ; windows.dlllist --pid 1234 ; windows.filescan
+Volatility 3: línea de comandos y hives|||vol -f mem.raw windows.cmdline ; windows.registry.hivelist
+Disco: listar y recuperar archivos (Sleuth Kit)|||mmls disco.dd ; fls -r -o OFFSET disco.dd ; icat -o OFFSET disco.dd INODE > archivo
+Artefactos Windows (Eric Zimmerman)|||MFTECmd, EvtxECmd, PECmd (prefetch), RECmd, Timeline Explorer
+Adquisición rápida de artefactos|||KAPE (Targets y Modules)
+Linux: archivos borrados aún abiertos|||lsof +L1
+Linux: conexiones por proceso|||lsof -i -P -n
+Linux: rootkits|||sudo rkhunter --check ; sudo chkrootkit
+Decodificar, descomprimir y desofuscar|||CyberChef (From Base64, Gunzip, XOR, Magic)
+`;
+const cats=[];
+D.split("\n").forEach(l=>{l=l.trim();if(!l)return;
+ if(l.startsWith("## "))cats.push({n:l.slice(3),i:[]});
+ else{const p=l.split("|||");cats[cats.length-1].i.push([p[0],p[1]])}});
+let act="Todo";
+const nav=document.getElementById("nav"),out=document.getElementById("out"),q=document.getElementById("q"),n=document.getElementById("n");
+["Todo",...cats.map(c=>c.n)].forEach(t=>{
+ const b=document.createElement("button");b.textContent=t;
+ b.onclick=()=>{act=t;render()};nav.appendChild(b)});
+function render(){
+ const s=q.value.toLowerCase().trim();let tot=0;out.textContent="";
+ [...nav.children].forEach(b=>b.classList.toggle("on",b.textContent===act));
+ cats.forEach(c=>{
+  if(act!=="Todo"&&act!==c.n)return;
+  const m=c.i.filter(x=>!s||(c.n+" "+x[0]+" "+x[1]).toLowerCase().includes(s));
+  if(!m.length)return;
+  const h=document.createElement("h2");h.textContent=c.n;out.appendChild(h);
+  m.forEach(x=>{tot++;
+   const d=document.createElement("div");d.className="it";
+   const t=document.createElement("div");t.className="d";t.textContent=x[0];
+   const r=document.createElement("div");r.className="r";
+   const p=document.createElement("pre");
+   if(/^https?:\/\//.test(x[1])){const a=document.createElement("a");a.href=x[1];a.target="_blank";a.rel="noopener noreferrer";a.textContent=x[1];p.appendChild(a)}else p.textContent=x[1];
+   const b=document.createElement("button");b.className="cp";b.textContent="copiar";
+   b.onclick=()=>{navigator.clipboard.writeText(x[1]).then(()=>{b.textContent="listo";b.classList.add("ok");setTimeout(()=>{b.textContent="copiar";b.classList.remove("ok")},1200)}).catch(()=>{b.textContent="error"})};
+   r.append(p,b);d.append(t,r);out.appendChild(d)})});
+ n.textContent=tot+" resultados"}
+q.addEventListener("input",render);render();
+</script>
+</body>
+</html>
