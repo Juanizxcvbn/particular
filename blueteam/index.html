@@ -56,6 +56,46 @@ Logs borrados (1102 / 104)|||index=wineventlog (EventCode=1102 OR EventCode=104)
 Procesos raros (poco frecuentes)|||index=sysmon EventCode=1 | rare limit=20 Image
 Acceso a LSASS (Sysmon 10)|||index=sysmon EventCode=10 TargetImage="*lsass.exe" | stats count by SourceImage, GrantedAccess
 
+## Splunk: investigar phishing (mismos campos del simulador)
+Antes de empezar|||Cambiar index=main por el índice de tu entorno. Splunk no distingue mayúsculas en valores y acepta * como comodín
+Mails de un remitente|||index=main datasource=email sender="onboarding@hrconnex.thm" | table _time sender recipient subject content
+Mails que recibió un usuario|||index=main datasource=email recipient="j.garcia@thetrydaily.thm" | table _time sender subject content
+Mails entrantes con links|||index=main datasource=email direction=inbound content="*http*" | table _time sender recipient subject
+Mails entrantes con adjunto|||index=main datasource=email direction=inbound attachment!="None" | table _time sender recipient subject attachment
+Asuntos con urgencia|||index=main datasource=email (subject="*urgent*" OR subject="*Action Required*" OR subject="*Verify*") | table _time sender recipient subject
+Links acortados dentro de mails|||index=main datasource=email (content="*bit.ly*" OR content="*tinyurl.com*" OR content="*t.co*") | table _time sender recipient subject
+Remitente que imita una marca|||index=main datasource=email sender="*amazon*" NOT sender="*@amazon.com" | table _time sender recipient subject
+Top remitentes entrantes|||index=main datasource=email direction=inbound | stats count by sender | sort -count | head 20
+Quién recibió mails de un remitente|||index=main datasource=email sender="onboarding@hrconnex.thm" | stats count by recipient
+Buscar un trozo único del link (ID)|||index=main *15400654060*
+¿Alguien visitó el dominio?|||index=main datasource=firewall URL="*hrconnex*" | table _time SourceIP URL Action
+Visitas a acortadores|||index=main datasource=firewall (URL="*bit.ly*" OR URL="*tinyurl.com*") | table _time SourceIP URL Action Rule
+Todo lo que bloqueó el firewall|||index=main datasource=firewall Action=blocked | table _time SourceIP URL Rule
+Todo lo que hizo una IP|||index=main SourceIP="10.20.2.17" | sort 0 _time | table _time SourceIP Action URL
+Tráfico fuera de la empresa|||index=main datasource=firewall NOT URL="*thetrydaily.thm*" | stats count by URL, SourceIP | sort -count
+Puertos fuera de lo normal|||index=main datasource=firewall NOT (DestinationPort=80 OR DestinationPort=443) | table _time SourceIP URL DestinationPort Action
+Correlación mail y clic en una sola búsqueda|||index=main (datasource=email content="*bit.ly*") OR (datasource=firewall URL="*bit.ly*") | table _time datasource sender recipient SourceIP URL Action | sort 0 _time
+
+## Splunk: equipo comprometido (Windows y Sysmon)
+Actividad de un host|||index=* host="PC-01" | sort 0 _time | table _time sourcetype EventCode
+Actividad de un usuario|||index=wineventlog Account_Name="j.garcia" | table _time host EventCode
+Logon RDP (tipo 10)|||index=wineventlog EventCode=4624 Logon_Type=10 | table _time host Account_Name src_ip
+Tarea programada creada|||index=wineventlog EventCode=4698 | table _time host Account_Name Message
+Servicio instalado|||index=wineventlog EventCode=7045 | table _time host Message
+Usuario creado o agregado a un grupo|||index=wineventlog (EventCode=4720 OR EventCode=4732) | table _time host Account_Name Group_Name
+Reglas del firewall de Windows modificadas|||index=wineventlog (EventCode=4946 OR EventCode=4947 OR EventCode=4948) | table _time host Message
+Persistencia en claves Run (Sysmon 13)|||index=sysmon EventCode=13 TargetObject="*CurrentVersion\\Run*" | table _time host Image TargetObject Details
+Descargas con herramientas del sistema|||index=sysmon EventCode=1 (Image="*certutil.exe" OR Image="*bitsadmin.exe") (CommandLine="*http*" OR CommandLine="*urlcache*") | table _time host User CommandLine
+Conexiones de red desde procesos raros|||index=sysmon EventCode=3 (Image="*powershell.exe" OR Image="*mshta.exe" OR Image="*rundll32.exe" OR Image="*wscript.exe") | table _time host Image DestinationIp DestinationPort
+Consultas DNS a un dominio (Sysmon 22)|||index=sysmon EventCode=22 QueryName="*dominio.com*" | table _time host Image QueryName
+Procesos lanzados desde carpetas de usuario|||index=sysmon EventCode=1 (Image="*\\AppData\\*" OR Image="*\\Temp\\*" OR Image="*\\Downloads\\*") | table _time host User Image CommandLine
+Destinos más contactados por un host|||index=sysmon EventCode=3 host="PC-01" | stats count by DestinationIp, DestinationPort | sort -count | head 20
+Qué hosts visitaron un dominio|||index=sysmon EventCode=22 QueryName="*dominio.com*" | stats count by host, Image | sort -count
+Procesos de un host en orden|||index=sysmon EventCode=1 host="PC-01" | sort 0 _time | table _time User ParentImage Image CommandLine
+Línea de tiempo de un host (últimas 24 h)|||index=* host="PC-01" earliest=-24h | sort 0 _time | table _time sourcetype EventCode Image CommandLine
+Truco: valores más frecuentes de un campo|||COMANDO | stats count by campo | sort -count
+Truco: búsqueda rápida con tstats|||| tstats count where index=* by host, sourcetype
+
 ## Elastic (KQL / ES|QL)
 KQL: logons fallidos|||event.code: 4625 and winlog.channel: "Security"
 KQL: PowerShell sospechoso|||process.name: "powershell.exe" and process.command_line: (*-enc* or *-nop* or *bypass* or *downloadstring*)
@@ -67,6 +107,54 @@ KQL: buscar un hash|||file.hash.sha256: "HASH" or process.hash.sha256: "HASH"
 ES|QL: fuerza bruta|||FROM logs-* | WHERE event.code == "4625" | STATS fails = COUNT(*) BY user.name, source.ip | WHERE fails > 10 | SORT fails DESC
 ES|QL: procesos menos frecuentes|||FROM logs-* | WHERE event.category == "process" | STATS c = COUNT(*) BY process.name | SORT c ASC | LIMIT 20
 Lucene: herramientas de credenciales|||process.command_line:*mimikatz* OR process.command_line:*sekurlsa*
+
+## Elastic: playbook de phishing (paso a paso)
+1. Leer la alerta|||Anotar sender, recipient, subject, links, attachment y hora (la alerta viene en UTC, Kibana muestra tu zona)
+2. Reputación del link o dominio|||VirusTotal, urlscan.io, AbuseIPDB. En labs con dominios .thm no hay datos reales: clasificar por indicadores
+3. Indicadores de phishing en el mail|||Dominio externo o parecido a uno real, urgencia o amenaza, saludo genérico, link acortado o personalizado, adjunto raro
+4. ¿Quién más recibió el mismo mail?|||Buscar por sender y por un trozo único del link (ver queries de abajo)
+5. ¿Alguien hizo clic?|||Buscar el dominio y el link en el firewall o proxy: allowed = hubo acceso, blocked = intento frenado, sin resultados = nadie entró
+6. Si hubo acceso (allowed)|||Escalar, aislar el equipo, resetear contraseña del usuario y revisar qué hizo esa IP después
+7. Si fue bloqueado o no hubo acceso|||Documentar, avisar al usuario, bloquear dominio y remitente
+8. Veredicto del reporte|||True Positive o False Positive + indicadores + impacto (con evidencia) + acciones recomendadas
+Regla de oro|||No afirmar lo que los logs no muestran: si no está confirmada la relación IP-usuario, escribir "probablemente"
+
+## Elastic: investigar phishing (campos del SOC Simulator)
+Mails de un remitente|||sender: "onboarding@hrconnex.thm"
+Mails que recibió un usuario|||recipient: "j.garcia@thetrydaily.thm"
+Mails entrantes con links|||direction: "inbound" and content: *http*
+Mails entrantes con adjunto|||direction: "inbound" and not attachment: "None"
+Asuntos con urgencia|||subject: (*urgent* or *Action Required* or *Immediate* or *Verify*)
+Links acortados dentro de mails|||content: (*bit.ly* or *tinyurl.com* or *t.co* or *goo.gl*)
+Remitente que imita una marca|||sender: *amazon* and not sender: *@amazon.com
+Buscar un trozo único del link (ID)|||*15400654060*
+¿Alguien visitó el dominio?|||datasource: "firewall" and URL: *hrconnex*
+Visitas a acortadores|||datasource: "firewall" and URL: (*bit.ly* or *tinyurl.com*)
+Todo lo que bloqueó el firewall|||datasource: "firewall" and Action: "blocked"
+Bloqueos de una regla concreta|||Rule: "Blocked Websites"
+Todo lo que hizo una IP|||SourceIP: "10.20.2.17"
+Tráfico fuera de la empresa|||datasource: "firewall" and not URL: *thetrydaily.thm*
+Tráfico HTTP sin cifrar|||datasource: "firewall" and DestinationPort: 80
+Puertos fuera de lo normal|||datasource: "firewall" and not DestinationPort: (80 or 443)
+Truco: ver quién recibió más|||Click en el campo recipient (panel izquierdo) > Field statistics muestra los valores más frecuentes
+Truco: línea de tiempo|||Agregar columnas timestamp, SourceIP, URL, Action y ordenar por timestamp ascendente
+
+## Elastic: equipo comprometido (ECS / Winlogbeat / Elastic Agent)
+Actividad de un host|||host.name: "PC-01"
+Actividad de un usuario|||user.name: "j.garcia"
+Alertas de seguridad abiertas|||event.kind: "alert"
+Logon RDP (tipo 10)|||event.code: 4624 and winlog.event_data.LogonType: "10"
+Tarea programada creada|||event.code: 4698
+Usuario creado o agregado a un grupo|||event.code: (4720 or 4732)
+Reglas del firewall de Windows modificadas|||event.code: (4946 or 4947 or 4948)
+Persistencia en claves Run (Sysmon 13)|||event.code: 13 and registry.path: *CurrentVersion*Run*
+Descargas con herramientas del sistema|||process.name: ("certutil.exe" or "bitsadmin.exe") and process.command_line: (*http* or *urlcache*)
+Conexiones de red desde procesos raros|||event.code: 3 and process.name: ("powershell.exe" or "cmd.exe" or "mshta.exe" or "rundll32.exe" or "wscript.exe")
+Consultas DNS a un dominio|||dns.question.name: *dominio.com*
+Procesos lanzados desde carpetas de usuario|||event.category: "process" and process.executable: (*Users*AppData* or *Temp* or *Downloads*)
+ES|QL: destinos más contactados por un host|||FROM logs-* | WHERE host.name == "PC-01" | STATS c = COUNT(*) BY destination.ip | SORT c DESC | LIMIT 20
+ES|QL: qué hosts visitaron un dominio|||FROM logs-* | WHERE url.domain == "dominio.com" | STATS c = COUNT(*) BY host.name, source.ip | SORT c DESC
+ES|QL: procesos nuevos de un host en orden|||FROM logs-* | WHERE host.name == "PC-01" AND event.category == "process" | KEEP @timestamp, user.name, process.parent.name, process.name, process.command_line | SORT @timestamp ASC | LIMIT 100
 
 ## Sentinel (KQL)
 Logons fallidos|||SecurityEvent | where EventID == 4625 | summarize Fails=count() by Account, IpAddress | where Fails > 10 | order by Fails desc
